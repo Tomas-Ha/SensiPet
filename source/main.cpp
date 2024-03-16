@@ -1,6 +1,8 @@
 #include "mbed.h"
 #include "stm32l475e_iot01_audio.h"
 #include <cstddef>
+#include <cstdio>
+#include <limits>
 
 static uint16_t PCM_Buffer[PCM_BUFFER_LEN / 2];
 static BSP_AUDIO_Init_t MicParams;
@@ -14,31 +16,54 @@ static size_t TARGET_AUDIO_BUFFER_NB_SAMPLES = (size_t) AUDIO_SAMPLING_FREQUENCY
 static int16_t *TARGET_AUDIO_BUFFER = (int16_t*)calloc(TARGET_AUDIO_BUFFER_NB_SAMPLES, sizeof(int16_t));
 static size_t TARGET_AUDIO_BUFFER_IX = 0;
 
-// we skip the first 50 events (100 ms.) to not record the button click
-static size_t SKIP_FIRST_EVENTS = 50;
-static size_t half_transfer_events = 0;
-static size_t transfer_complete_events = 0;
-
+static float max_amp_change = 20;
 float avg_amplitude = 0;
+float max_amplitude = 0;
 float avg_in_decibels = 0;
+float max_in_decibels = 0;
 
 // callback that gets invoked when TARGET_AUDIO_BUFFER is full
 void target_audio_buffer_full() {
-    // pause audio stream
-    int32_t ret = BSP_AUDIO_IN_Stop(AUDIO_INSTANCE);
+    int32_t ret;
+    uint32_t state;
+
+    ret = BSP_AUDIO_IN_GetState(AUDIO_INSTANCE, &state);
     if (ret != BSP_ERROR_NONE) {
-        printf("Error Audio Stop (%d)\n", ret);
+        printf("Cannot start recording: Error getting audio state (%d)\n", ret);
+        return;
+    }
+    if (state != AUDIO_IN_STATE_STOP) {
+        printf("Cannot process data: Still recording\n");
+        return;
     }
 
-    avg_amplitude = 0;
+    float new_avg_amplitude = 0;
+    float new_max_amplitude = -std::numeric_limits<float>::infinity();;
+    // float new_min_amplitude = std::numeric_limits<float>::infinity();
     int16_t *buf = (int16_t*)TARGET_AUDIO_BUFFER;
     for (size_t ix = 0; ix < TARGET_AUDIO_BUFFER_NB_SAMPLES; ix++) {
-        avg_amplitude += abs(buf[ix]);
+        new_avg_amplitude += ((float) abs(buf[ix]) / TARGET_AUDIO_BUFFER_NB_SAMPLES);
+        if (abs(buf[ix]) > new_max_amplitude) new_max_amplitude = abs(buf[ix]);
+        // if (abs(buf[ix]) < new_min_amplitude) new_min_amplitude = abs(buf[ix]);
     }
-    avg_amplitude /= TARGET_AUDIO_BUFFER_NB_SAMPLES;
     // Equation found here: https://microsoft.public.win32.programmer.directx.audio.narkive.com/xXQQgJG4/how-to-convert-wav-samples-to-decibels
-    avg_in_decibels = 20 * log10 (abs(avg_amplitude) / 100.0); // TODO: generate reference values using a phone
-    printf("%f => %f\n", avg_amplitude, avg_in_decibels);
+    float new_avg_in_decibels = 20 * log10 (abs(new_avg_amplitude)); // TODO: generate reference values using a phone
+    float new_max_in_decibels = 20 * log10 (abs(new_max_amplitude));
+    // float new_min_in_decibels = 20 * log10 (abs(new_min_amplitude));
+
+    // Check for jumpscare
+    if (new_max_in_decibels - max_in_decibels >= max_amp_change) {
+        printf("SCARED\n");
+    }
+    printf("MAX: %f => %f\n", new_max_amplitude, new_max_in_decibels);
+    // printf("MIN: %f => %f\n", new_min_amplitude, new_min_in_decibels);
+    printf("MAX_DIFF: %f\n\n", new_max_in_decibels - max_in_decibels);
+
+    // Update Values
+    avg_amplitude = new_avg_amplitude;
+    max_amplitude = new_max_amplitude;
+    avg_in_decibels = new_avg_in_decibels;
+    max_in_decibels = new_max_in_decibels;
     // TODO: track multiple statistics like median, min, max
 }
 
@@ -48,9 +73,6 @@ void target_audio_buffer_full() {
 * @retval None
 */
 void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance) {
-    // TODO: How does this work
-    half_transfer_events++;
-    if (half_transfer_events < SKIP_FIRST_EVENTS) return;
 
     uint32_t buffer_size = PCM_BUFFER_LEN / 2; /* Half Transfer */
     uint32_t nb_samples = buffer_size / sizeof(int16_t); /* Bytes to Length */
@@ -64,6 +86,11 @@ void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance) {
     TARGET_AUDIO_BUFFER_IX += nb_samples;
 
     if (TARGET_AUDIO_BUFFER_IX >= TARGET_AUDIO_BUFFER_NB_SAMPLES) {
+        // pause audio stream
+        int32_t ret = BSP_AUDIO_IN_Stop(AUDIO_INSTANCE);
+        if (ret != BSP_ERROR_NONE) {
+            printf("Error Audio Stop (%d)\n", ret);
+        }
         ev_queue.call(&target_audio_buffer_full);
         return;
     }
@@ -75,9 +102,6 @@ void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance) {
 * @retval None
 */
 void BSP_AUDIO_IN_TransferComplete_CallBack(uint32_t Instance) {
-    // TODO: How does this work
-    transfer_complete_events++;
-    if (transfer_complete_events < SKIP_FIRST_EVENTS) return;
 
     uint32_t buffer_size = PCM_BUFFER_LEN / 2; /* Half Transfer */
     uint32_t nb_samples = buffer_size / sizeof(int16_t); /* Bytes to Length */
@@ -92,6 +116,11 @@ void BSP_AUDIO_IN_TransferComplete_CallBack(uint32_t Instance) {
     TARGET_AUDIO_BUFFER_IX += nb_samples;
 
     if (TARGET_AUDIO_BUFFER_IX >= TARGET_AUDIO_BUFFER_NB_SAMPLES) {
+        // pause audio stream
+        int32_t ret = BSP_AUDIO_IN_Stop(AUDIO_INSTANCE);
+        if (ret != BSP_ERROR_NONE) {
+            printf("Error Audio Stop (%d)\n", ret);
+        }
         ev_queue.call(&target_audio_buffer_full);
         return;
     }
@@ -122,17 +151,15 @@ void start_recording() {
 
     // reset audio buffer location
     TARGET_AUDIO_BUFFER_IX = 0;
-    transfer_complete_events = 0;
-    half_transfer_events = 0;
 
     ret = BSP_AUDIO_IN_Record(AUDIO_INSTANCE, (uint8_t *) PCM_Buffer, PCM_BUFFER_LEN);
     if (ret != BSP_ERROR_NONE) {
         printf("Error Audio Record (%d)\n", ret);
         return;
     }
-    else {
-        printf("OK Audio Record\n");
-    }
+    // else {
+    //     printf("OK Audio Record\n");
+    // }
 }
 
 int main() {
@@ -159,7 +186,7 @@ int main() {
         printf("OK Audio Init\t(Audio Freq=%d)\r\n", AUDIO_SAMPLING_FREQUENCY);
     }
 
-    ev_queue.call_every(500ms, start_recording);
+    ev_queue.call_every(100ms, start_recording);
 
     ev_queue.dispatch_forever();
 }
