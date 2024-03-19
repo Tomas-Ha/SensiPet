@@ -1954,7 +1954,7 @@ void HAL_DFSDM_FilterRegConvHalfCpltCallback(DFSDM_Filter_HandleTypeDef *hdfsdm_
   uint32_t     index;
   uint32_t     recbufsize = (Audio_In_Ctx[0].Size / (2U * Audio_In_Ctx[0].ChannelsNbr));
   __IO int32_t tmp;
-
+  
   if (Audio_In_Ctx[0].Device == AUDIO_IN_DIGITAL_MIC)
   {
     for (index = 0; index < (recbufsize / 2U); index++)

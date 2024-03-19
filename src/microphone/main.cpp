@@ -1,6 +1,10 @@
 #include "mbed.h"
 #include "stm32l475e_iot01_audio.h"
+#include "Adafruit_SSD1306.h"
+#include "Adafruit_GFX.h"
+#include "sprites.h"
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <limits>
 
@@ -9,6 +13,20 @@ static BSP_AUDIO_Init_t MicParams;
 
 static DigitalOut led(LED1);
 static EventQueue ev_queue;
+
+// an I2C sub-class that provides a constructed default
+class I2CPreInit : public I2C
+{
+  public:
+    I2CPreInit(PinName sda, PinName scl) : I2C(sda, scl)
+    {
+        frequency(400000);
+        start();
+    };
+};
+
+I2CPreInit gI2C(PB_9, PB_8);
+Adafruit_SSD1306_I2c gOled(gI2C, LED1, 0x78, 64, 128);
 
 // Place to store final audio (alloc on the heap), here two seconds...
 static size_t AUDIO_RECORDING_LENGTH = 10; // Audio recording length in ms (sensitivity)
@@ -21,6 +39,12 @@ float avg_amplitude = 0;
 float max_amplitude = 0;
 float avg_in_decibels = 0;
 float max_in_decibels = 0;
+
+void reset_screen() {
+    gOled.clearDisplay();
+    gOled.drawBitmap(0, -2, smile, 128, 64, WHITE);
+    gOled.display();
+}
 
 // callback that gets invoked when TARGET_AUDIO_BUFFER is full
 void target_audio_buffer_full() {
@@ -53,11 +77,16 @@ void target_audio_buffer_full() {
 
     // Check for jumpscare
     if (new_max_in_decibels - max_in_decibels >= max_amp_change) {
-        printf("SCARED\n");
+        gOled.clearDisplay();
+        gOled.drawBitmap(0, -2, scared, 128, 64, WHITE);
+        gOled.display();
+        printf("SCARED");
+        ev_queue.call_in(1000ms, reset_screen);
+
+        printf("MAX: %f => %f\n", new_max_amplitude, new_max_in_decibels);
+        // printf("MIN: %f => %f\n", new_min_amplitude, new_min_in_decibels);
+        printf("MAX_DIFF: %f\n\n", new_max_in_decibels - max_in_decibels);
     }
-    printf("MAX: %f => %f\n", new_max_amplitude, new_max_in_decibels);
-    // printf("MIN: %f => %f\n", new_min_amplitude, new_min_in_decibels);
-    printf("MAX_DIFF: %f\n\n", new_max_in_decibels - max_in_decibels);
 
     // Update Values
     avg_amplitude = new_avg_amplitude;
@@ -164,6 +193,7 @@ void start_recording() {
 
 int main() {
     // Reference for code: https://github.com/janjongboom/b-l475e-iot01a-audio-mbed/tree/master
+    gOled.setTextSize(3);
 
     if (!TARGET_AUDIO_BUFFER) {
         printf("Failed to allocate TARGET_AUDIO_BUFFER buffer\n");
