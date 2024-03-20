@@ -40,9 +40,27 @@ float max_amplitude = 0;
 float avg_in_decibels = 0;
 float max_in_decibels = 0;
 
+int x = 0;
+int y = -2;
+int curr_frame = 0;
+bool is_scared = false;
+bool go_left = false;
+
 void reset_screen() {
+    is_scared = false;
+    // gOled.clearDisplay();
+    // gOled.drawBitmap(0, -2, smile, 128, 64, WHITE);
+    // gOled.display();
+}
+
+void update_idle_frame() {
+    if (is_scared) return;
+    if (x + 48 >= 128) go_left = true;
+    if (x <= 0) go_left = false;
+    x += (go_left ? -2 : 2);
+    curr_frame = 1 - curr_frame;
     gOled.clearDisplay();
-    gOled.drawBitmap(0, -2, smile, 128, 64, WHITE);
+    gOled.drawBitmap(x, y, curr_frame == 0 ? idle_frame_1 : idle_frame_2, 48, 48, WHITE);
     gOled.display();
 }
 
@@ -77,10 +95,11 @@ void target_audio_buffer_full() {
 
     // Check for jumpscare
     if (new_max_in_decibels - max_in_decibels >= max_amp_change) {
+        is_scared = true;
         gOled.clearDisplay();
-        gOled.drawBitmap(0, -2, scared, 128, 64, WHITE);
+        gOled.drawBitmap(x, y, scared_frame, 48, 48, WHITE);
         gOled.display();
-        printf("SCARED");
+        printf("SCARED\n");
         ev_queue.call_in(1000ms, reset_screen);
 
         printf("MAX: %f => %f\n", new_max_amplitude, new_max_in_decibels);
@@ -217,6 +236,7 @@ int main() {
     }
 
     ev_queue.call_every(100ms, start_recording);
+    ev_queue.call_every(500ms, update_idle_frame);
 
     ev_queue.dispatch_forever();
 }
