@@ -28,14 +28,16 @@ void reset_screen() {
 }
 
 void update_idle_frame() {
-    if (is_scared) return;
+    if (is_scared)
+    {
+        gOled.drawBitmap(x, y, scared_frame, 48, 48, WHITE);
+        return;
+    }
     if (x + 48 >= 128) go_left = true;
     if (x <= 0) go_left = false;
     x += (go_left ? -2 : 2);
     curr_frame = 1 - curr_frame;
-    gOled.clearDisplay();
     gOled.drawBitmap(x, y, curr_frame == 0 ? idle_frame_1 : idle_frame_2, 48, 48, WHITE);
-    gOled.display();
 }
 
 // callback that gets invoked when TARGET_AUDIO_BUFFER is full
@@ -70,12 +72,9 @@ void target_audio_buffer_full() {
     // Check for jumpscare
     if (new_max_in_decibels - max_in_decibels >= max_amp_change) {
         is_scared = true;
-        gOled.clearDisplay();
-        gOled.drawBitmap(x, y, scared_frame, 48, 48, WHITE);
-        gOled.display();
         printf("SCARED\n");
-        gSensiPet.get_current_state()->get_event_queue()->call_in(1000ms, reset_screen);
 
+        gSensiPet.get_current_state()->get_event_queue()->call_in(1000ms, reset_screen);
         printf("MAX: %f => %f\n", new_max_amplitude, new_max_in_decibels);
         // printf("MIN: %f => %f\n", new_min_amplitude, new_min_in_decibels);
         printf("MAX_DIFF: %f\n\n", new_max_in_decibels - max_in_decibels);

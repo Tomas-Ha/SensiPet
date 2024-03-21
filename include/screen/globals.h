@@ -16,3 +16,6 @@ class I2CPreInit : public I2C
 
 extern I2CPreInit gI2C;
 extern Adafruit_SSD1306_I2c gOled;
+
+extern void clear_display();
+extern void flip_display();
