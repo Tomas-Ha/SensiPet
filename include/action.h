@@ -2,5 +2,5 @@
 
 enum class Action
 {
-    // TODO: Place some sample actions here
+    BUTTON_PRESSED
 };
