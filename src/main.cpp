@@ -1,4 +1,6 @@
 #include "mbed.h"
+#include "sensipet.h"
+#include "sensipet_state.h"
 #include "stm32l475e_iot01_audio.h"
 #include "Adafruit_SSD1306.h"
 #include "Adafruit_GFX.h"
@@ -8,11 +10,14 @@
 #include <cstdio>
 #include <limits>
 
+// Global states
+static SensiPet gSensiPet;
+static SensiPetState gMainState;
+
 static uint16_t PCM_Buffer[PCM_BUFFER_LEN / 2];
 static BSP_AUDIO_Init_t MicParams;
 
 static DigitalOut led(LED1);
-static EventQueue ev_queue;
 
 // an I2C sub-class that provides a constructed default
 class I2CPreInit : public I2C
@@ -48,9 +53,6 @@ bool go_left = false;
 
 void reset_screen() {
     is_scared = false;
-    // gOled.clearDisplay();
-    // gOled.drawBitmap(0, -2, smile, 128, 64, WHITE);
-    // gOled.display();
 }
 
 void update_idle_frame() {
@@ -100,7 +102,7 @@ void target_audio_buffer_full() {
         gOled.drawBitmap(x, y, scared_frame, 48, 48, WHITE);
         gOled.display();
         printf("SCARED\n");
-        ev_queue.call_in(1000ms, reset_screen);
+        gSensiPet.get_current_state()->get_event_queue()->call_in(1000ms, reset_screen);
 
         printf("MAX: %f => %f\n", new_max_amplitude, new_max_in_decibels);
         // printf("MIN: %f => %f\n", new_min_amplitude, new_min_in_decibels);
@@ -139,7 +141,7 @@ void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance) {
         if (ret != BSP_ERROR_NONE) {
             printf("Error Audio Stop (%d)\n", ret);
         }
-        ev_queue.call(&target_audio_buffer_full);
+        gSensiPet.get_current_state()->get_event_queue()->call(&target_audio_buffer_full);
         return;
     }
 }
@@ -169,7 +171,7 @@ void BSP_AUDIO_IN_TransferComplete_CallBack(uint32_t Instance) {
         if (ret != BSP_ERROR_NONE) {
             printf("Error Audio Stop (%d)\n", ret);
         }
-        ev_queue.call(&target_audio_buffer_full);
+        gSensiPet.get_current_state()->get_event_queue()->call(&target_audio_buffer_full);
         return;
     }
 }
@@ -205,15 +207,10 @@ void start_recording() {
         printf("Error Audio Record (%d)\n", ret);
         return;
     }
-    // else {
-    //     printf("OK Audio Record\n");
-    // }
 }
 
-int main() {
-    // Reference for code: https://github.com/janjongboom/b-l475e-iot01a-audio-mbed/tree/master
-    gOled.setTextSize(3);
-
+int init_microphone()
+{
     if (!TARGET_AUDIO_BUFFER) {
         printf("Failed to allocate TARGET_AUDIO_BUFFER buffer\n");
         return 0;
@@ -235,8 +232,29 @@ int main() {
         printf("OK Audio Init\t(Audio Freq=%d)\r\n", AUDIO_SAMPLING_FREQUENCY);
     }
 
-    ev_queue.call_every(100ms, start_recording);
-    ev_queue.call_every(500ms, update_idle_frame);
+    return 0;
+}
 
-    ev_queue.dispatch_forever();
+void setup_states()
+{
+    // Main state
+    gMainState.get_event_queue()->call_every(100ms, start_recording);
+    gMainState.get_event_queue()->call_every(500ms, update_idle_frame);
+}
+
+void init()
+{
+    // Initialization for submodules should go here.
+    init_microphone();
+}
+
+int main()
+{
+    init();
+    setup_states();
+
+    // Set the default state for the SensiPet, this should dispatch forever by default.
+    gSensiPet.set_current_state(&gMainState);
+
+    return 0;
 }
