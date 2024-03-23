@@ -2,5 +2,7 @@
 
 enum class Action
 {
-    BUTTON_PRESSED
+    BUTTON_PRESSED,
+    SCARED,
+    FINISH
 };

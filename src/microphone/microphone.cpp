@@ -11,34 +11,11 @@ size_t TARGET_AUDIO_BUFFER_NB_SAMPLES = (size_t) AUDIO_SAMPLING_FREQUENCY * ((do
 int16_t *TARGET_AUDIO_BUFFER = (int16_t*)calloc(TARGET_AUDIO_BUFFER_NB_SAMPLES, sizeof(int16_t));
 size_t TARGET_AUDIO_BUFFER_IX = 0;
 
-float max_amp_change = 20;
+float max_amp_change = 15;
 float avg_amplitude = 0;
 float max_amplitude = 0;
 float avg_in_decibels = 0;
 float max_in_decibels = 0;
-
-int x = 0;
-int y = -2;
-int curr_frame = 0;
-bool is_scared = false;
-bool go_left = false;
-
-void reset_screen() {
-    is_scared = false;
-}
-
-void update_idle_frame() {
-    if (is_scared)
-    {
-        gOled.drawBitmap(x, y, scared_frame, 48, 48, WHITE);
-        return;
-    }
-    if (x + 48 >= 128) go_left = true;
-    if (x <= 0) go_left = false;
-    x += (go_left ? -2 : 2);
-    curr_frame = 1 - curr_frame;
-    gOled.drawBitmap(x, y, curr_frame == 0 ? idle_frame_1 : idle_frame_2, 48, 48, WHITE);
-}
 
 // callback that gets invoked when TARGET_AUDIO_BUFFER is full
 void target_audio_buffer_full() {
@@ -71,10 +48,9 @@ void target_audio_buffer_full() {
 
     // Check for jumpscare
     if (new_max_in_decibels - max_in_decibels >= max_amp_change) {
-        is_scared = true;
         printf("SCARED\n");
 
-        gSensiPet.get_current_state()->get_event_queue()->call_in(1000ms, reset_screen);
+        gSensiPet.update_state(Action::SCARED);
         printf("MAX: %f => %f\n", new_max_amplitude, new_max_in_decibels);
         // printf("MIN: %f => %f\n", new_min_amplitude, new_min_in_decibels);
         printf("MAX_DIFF: %f\n\n", new_max_in_decibels - max_in_decibels);

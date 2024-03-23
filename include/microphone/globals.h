@@ -19,15 +19,6 @@ extern float max_amplitude;
 extern float avg_in_decibels;
 extern float max_in_decibels;
 
-extern int x;
-extern int y;
-extern int curr_frame;
-extern bool is_scared;
-extern bool go_left;
-
-
-extern void reset_screen();
-extern void update_idle_frame();
 extern void target_audio_buffer_full();
 extern void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance);
 extern void BSP_AUDIO_IN_TransferComplete_CallBack(uint32_t Instance);

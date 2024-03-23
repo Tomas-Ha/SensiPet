@@ -8,7 +8,7 @@ extern SensiPet gSensiPet;
 
 // States
 extern SensiPetState gMainState;
-extern SensiPetState gSecondaryState;
-extern SensiPetState gThirdState;
+extern SensiPetState gScaredState;
+extern SensiPetState gEatingState;
 
 extern void setup_states();

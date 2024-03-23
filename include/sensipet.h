@@ -2,6 +2,12 @@
 
 #include "sensipet_state.h"
 #include "sensipet_stats.h"
+#include <utility>
+
+struct Position
+{
+    uint16_t x, y;
+};
 
 /// @brief Main class for handling the SensiPet
 class SensiPet
@@ -13,6 +19,8 @@ class SensiPet
   public:
     SensiPet();
     ~SensiPet();
+    
+    Position position;
 
     void update_state(Action action);
     SensiPetState *get_current_state();
