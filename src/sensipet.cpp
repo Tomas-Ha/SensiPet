@@ -8,11 +8,6 @@ SensiPet::~SensiPet()
 {
 }
 
-void switch_event_queue(EventQueue* new_queue)
-{
-    
-}
-
 void SensiPet::update_state(Action action)
 {
     if (!current_state) return;

@@ -88,7 +88,7 @@ void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance) {
         if (ret != BSP_ERROR_NONE) {
             printf("Error Audio Stop (%d)\n", ret);
         }
-        gSensiPet.get_current_state()->get_event_queue()->call(&target_audio_buffer_full);
+        target_audio_buffer_full();
         return;
     }
 }
@@ -118,7 +118,7 @@ void BSP_AUDIO_IN_TransferComplete_CallBack(uint32_t Instance) {
         if (ret != BSP_ERROR_NONE) {
             printf("Error Audio Stop (%d)\n", ret);
         }
-        gSensiPet.get_current_state()->get_event_queue()->call(&target_audio_buffer_full);
+        target_audio_buffer_full();
         return;
     }
 }

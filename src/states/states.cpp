@@ -7,10 +7,6 @@
 // Global states
 SensiPet gSensiPet;
 
-// States
-SensiPetState gMainState;
-SensiPetState gScaredState;
-
 int curr_frame = 0;
 bool is_scared = false;
 bool go_left = false;
@@ -45,14 +41,4 @@ void scared_state_update()
     gOled.display();
 
     // Should transition back to main state once the animation has finished playing
-    gSensiPet.get_current_state()->get_event_queue()->call_in(1000ms, finish_state);
-}
-
-
-void setup_states()
-{
-    gMainState.get_event_queue()->call_every(100ms, start_recording);
-    gMainState.get_event_queue()->call_every(500ms, main_state_update);
-
-    gScaredState.get_event_queue()->call_every(100ms, scared_state_update);
 }

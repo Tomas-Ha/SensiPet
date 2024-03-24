@@ -23,9 +23,6 @@ void init()
 {
     // TODO: Should be checking for errors here.
     init_microphone();
-
-    setup_states();
-
     // Setup button interrupts
     button1.fall(button1_fall_handler);
 }
@@ -33,15 +30,7 @@ void init()
 int main()
 {
     init();
-
-    gSensiPet.set_current_state(&gMainState);
-
-    // TODO: Fix this, there should be a method to using an event
-    // queue without having to use a while loop.
-    while (true)
-    {
-        gSensiPet.get_current_state()->get_event_queue()->dispatch_once();
-    }
+    // TODO: Figure out how to make this state machine work
 
     return 0;
 }
