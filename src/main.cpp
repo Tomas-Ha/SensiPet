@@ -8,9 +8,15 @@
 #include <cstdint>
 #include <cstdio>
 #include <limits>
+#include "states/state_main.h"
+#include "states/state_sleep.h"
 
 // Setup button interrupts
 InterruptIn button1(BUTTON1);
+
+// States
+MainState mainState;
+SleepState sleepState;
 
 volatile bool button_pressed = false;
 
@@ -19,10 +25,19 @@ void button1_fall_handler()
     gSensiPet.update_state(Action::BUTTON_PRESSED);
 }
 
+void setup_states()
+{
+    mainState.create_transition(Action::BUTTON_PRESSED, &sleepState);
+    sleepState.create_transition(Action::BUTTON_PRESSED, &mainState);
+
+    gSensiPet.set_current_state(&mainState);
+}
+
 void init()
 {
-    // TODO: Should be checking for errors here.
     init_microphone();
+    setup_states();
+
     // Setup button interrupts
     button1.fall(button1_fall_handler);
 }
@@ -30,7 +45,6 @@ void init()
 int main()
 {
     init();
-    // TODO: Figure out how to make this state machine work
-
+    gSensiPet.start();
     return 0;
 }

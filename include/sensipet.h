@@ -15,12 +15,23 @@ class SensiPet
   private:
     SensiPetStats pet_stats;
     SensiPetState *current_state = nullptr;
+    EventQueue queue;
+
+    void init_current_state();
+    void update_current_state();
+    void cleanup_current_state();
+
+    void update_state_wrapper(Action action);
+
+    unsigned int last_tick = 0;
 
   public:
     SensiPet();
     ~SensiPet();
     
     Position position;
+
+    void start();
 
     void update_state(Action action);
     SensiPetState *get_current_state();
