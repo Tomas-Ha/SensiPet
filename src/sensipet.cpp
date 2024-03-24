@@ -54,6 +54,7 @@ void SensiPet::set_current_state(SensiPetState *state)
     current_state = state;
     // Initialize the current state and begin updates
     current_state->init();
+    current_state->update(0);
 }
 
 void SensiPet::start()
