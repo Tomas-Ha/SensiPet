@@ -60,7 +60,7 @@ void SensiPet::set_current_state(SensiPetState *state)
 void SensiPet::start()
 {
     // TODO: Change these around as you wish.
-    queue.call_every(1000ms, queue.event(this, &SensiPet::update_current_state));
+    queue.call_every(500ms, queue.event(this, &SensiPet::update_current_state));
 
     // Start the main event loop with an EventQueue
     while (true)

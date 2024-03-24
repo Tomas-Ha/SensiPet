@@ -38,9 +38,9 @@ class SensiPet
     void set_current_state(SensiPetState *state);
 
     // Getters and setters for pet stats
-    inline uint16_t get_loneliness()
+    inline uint16_t get_thirst()
     {
-        return pet_stats.loneliness;
+        return pet_stats.thirst;
     }
     inline uint16_t get_hunger()
     {
@@ -51,9 +51,9 @@ class SensiPet
         return pet_stats.comfort;
     }
 
-    inline void set_loneliness(uint16_t loneliness)
+    inline void set_thirst(uint16_t thirst)
     {
-        pet_stats.loneliness = loneliness;
+        pet_stats.thirst = thirst;
     }
     inline void set_hunger(uint16_t hunger)
     {

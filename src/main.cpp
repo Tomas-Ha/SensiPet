@@ -10,6 +10,7 @@
 #include <limits>
 #include "states/state_main.h"
 #include "states/state_sleep.h"
+#include "states/state_hungry.h"
 
 // Setup button interrupts
 InterruptIn button1(BUTTON1);
@@ -17,6 +18,7 @@ InterruptIn button1(BUTTON1);
 // States
 MainState mainState;
 SleepState sleepState;
+HungryState hungryState;
 
 volatile bool button_pressed = false;
 
@@ -27,7 +29,7 @@ void button1_fall_handler()
 
 void setup_states()
 {
-    mainState.create_transition(Action::BUTTON_PRESSED, &sleepState);
+    mainState.create_transition(Action::BUTTON_PRESSED, &hungryState);
     sleepState.create_transition(Action::BUTTON_PRESSED, &mainState);
 
     gSensiPet.set_current_state(&mainState);

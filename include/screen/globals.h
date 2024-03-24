@@ -19,3 +19,4 @@ extern Adafruit_SSD1306_I2c gOled;
 
 extern void clear_display();
 extern void flip_display();
+extern void display_stats();

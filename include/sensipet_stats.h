@@ -7,7 +7,7 @@
 struct SensiPetStats
 {
     // TODO: Unsure which data type we want to use for these stats. Should be unsigned though.
-    uint16_t loneliness;
+    uint16_t thirst;
     uint16_t hunger;
     uint16_t comfort;
 };
