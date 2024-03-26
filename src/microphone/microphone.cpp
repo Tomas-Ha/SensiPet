@@ -11,7 +11,7 @@ size_t TARGET_AUDIO_BUFFER_NB_SAMPLES = (size_t) AUDIO_SAMPLING_FREQUENCY * ((do
 int16_t *TARGET_AUDIO_BUFFER = (int16_t*)calloc(TARGET_AUDIO_BUFFER_NB_SAMPLES, sizeof(int16_t));
 size_t TARGET_AUDIO_BUFFER_IX = 0;
 
-float max_amp_change = 15;
+float max_amp_change = 20;
 float max_in_decibels = 10000;
 
 // callback that gets invoked when TARGET_AUDIO_BUFFER is full

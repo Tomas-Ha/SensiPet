@@ -9,11 +9,6 @@
 
 #define NUM_SCARED_FRAMES 2
 
-void return_to_previous() 
-{
-    gSensiPet.update_previous_state();
-}
-
 void ScaredState::init()
 {
     printf("ENTERED SCARED\n");
