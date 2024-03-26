@@ -1,10 +1,17 @@
 #include "states/state_main.h"
 #include "screen/globals.h"
+#include <cstdint>
 #include <cstdio>
+#include <stdint.h>
+#include <vector>
+#include "sprites/sprites.h"
+
+#define NUM_FRIEND_FRAMES 2
+const uint8_t * frames_main[NUM_FRIEND_FRAMES] = {idle_frame_1, idle_frame_2};
+int frames_main_idx = 0;
 
 void MainState::init()
 {
-    printf("Main state initialized.\n");
     update(0);
 }
 
@@ -12,10 +19,11 @@ void MainState::update(unsigned int delta_ms)
 {
     gOled.clearDisplay();
     gOled.setTextColor(WHITE);
-    gOled.setTextSize(2);
-    gOled.setTextCursor(0, 0);
-    gOled.printf("State: Main");
+    display_stats();
+    gOled.drawBitmap(70, 5, frames_main[frames_main_idx], 48, 48, WHITE);
     gOled.display();
+    frames_main_idx++;
+    if (frames_main_idx >= NUM_FRIEND_FRAMES) frames_main_idx = 0;
 }
 
 void MainState::cleanup()
