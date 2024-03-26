@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <limits>
+#include <string>
 #include "states/state_main.h"
 #include "states/state_sleep.h"
 #include "states/state_hungry.h"
@@ -29,13 +30,14 @@ EatingState eatingState;
 FriendshipState friendshipState;
 HungryState hungryState;
 LonelyState lonelyState;
-ScaredState scaredState;
+ScaredState scaredState("SCARED");
 ThirstyState thirstyState;
 
 volatile bool button_pressed = false;
 
 void button1_fall_handler()
 {
+    if (gSensiPet.get_current_state()->name == "SCARED") return;
     gSensiPet.update_state(Action::BUTTON_PRESSED);
 }
 
@@ -49,6 +51,15 @@ void setup_states()
     lonelyState.create_transition(Action::BUTTON_PRESSED, &friendshipState);
     friendshipState.create_transition(Action::BUTTON_PRESSED, &sleepState);
     sleepState.create_transition(Action::BUTTON_PRESSED, &mainState);
+
+    mainState.create_transition(Action::SCARED, &scaredState);
+    hungryState.create_transition(Action::SCARED, &scaredState);
+    thirstyState.create_transition(Action::SCARED, &scaredState);
+    drinkingState.create_transition(Action::SCARED, &scaredState);
+    eatingState.create_transition(Action::SCARED, &scaredState);
+    lonelyState.create_transition(Action::SCARED, &scaredState);
+    friendshipState.create_transition(Action::SCARED, &scaredState);
+    sleepState.create_transition(Action::SCARED, &scaredState);
 
     gSensiPet.set_current_state(&mainState);
 }

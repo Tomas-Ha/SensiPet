@@ -15,6 +15,7 @@ class SensiPet
   private:
     SensiPetStats pet_stats;
     SensiPetState *current_state = nullptr;
+    SensiPetState *previous_state = nullptr;
     EventQueue queue;
 
     void init_current_state();
@@ -22,6 +23,7 @@ class SensiPet
     void cleanup_current_state();
 
     void update_state_wrapper(Action action);
+    void update_previous_state_wrapper();
 
     unsigned int last_tick = 0;
 
@@ -34,6 +36,7 @@ class SensiPet
     void start();
 
     void update_state(Action action);
+    void update_previous_state();
     SensiPetState *get_current_state();
     void set_current_state(SensiPetState *state);
 
@@ -49,6 +52,10 @@ class SensiPet
     inline uint16_t get_comfort()
     {
         return pet_stats.comfort;
+    }
+    inline EventQueue* get_eq()
+    {
+        return &queue;
     }
 
     inline void set_thirst(uint16_t thirst)

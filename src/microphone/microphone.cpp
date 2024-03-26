@@ -12,10 +12,7 @@ int16_t *TARGET_AUDIO_BUFFER = (int16_t*)calloc(TARGET_AUDIO_BUFFER_NB_SAMPLES, 
 size_t TARGET_AUDIO_BUFFER_IX = 0;
 
 float max_amp_change = 15;
-float avg_amplitude = 0;
-float max_amplitude = 0;
-float avg_in_decibels = 0;
-float max_in_decibels = 0;
+float max_in_decibels = 10000;
 
 // callback that gets invoked when TARGET_AUDIO_BUFFER is full
 void target_audio_buffer_full() {
@@ -32,34 +29,24 @@ void target_audio_buffer_full() {
         return;
     }
 
-    float new_avg_amplitude = 0;
     float new_max_amplitude = -std::numeric_limits<float>::infinity();;
-    // float new_min_amplitude = std::numeric_limits<float>::infinity();
     int16_t *buf = (int16_t*)TARGET_AUDIO_BUFFER;
     for (size_t ix = 0; ix < TARGET_AUDIO_BUFFER_NB_SAMPLES; ix++) {
-        new_avg_amplitude += ((float) abs(buf[ix]) / TARGET_AUDIO_BUFFER_NB_SAMPLES);
         if (abs(buf[ix]) > new_max_amplitude) new_max_amplitude = abs(buf[ix]);
-        // if (abs(buf[ix]) < new_min_amplitude) new_min_amplitude = abs(buf[ix]);
     }
     // Equation found here: https://microsoft.public.win32.programmer.directx.audio.narkive.com/xXQQgJG4/how-to-convert-wav-samples-to-decibels
-    float new_avg_in_decibels = 20 * log10 (abs(new_avg_amplitude)); // TODO: generate reference values using a phone
     float new_max_in_decibels = 20 * log10 (abs(new_max_amplitude));
     // float new_min_in_decibels = 20 * log10 (abs(new_min_amplitude));
 
     // Check for jumpscare
     if (new_max_in_decibels - max_in_decibels >= max_amp_change) {
         printf("SCARED\n");
-
         gSensiPet.update_state(Action::SCARED);
         printf("MAX: %f => %f\n", new_max_amplitude, new_max_in_decibels);
-        // printf("MIN: %f => %f\n", new_min_amplitude, new_min_in_decibels);
         printf("MAX_DIFF: %f\n\n", new_max_in_decibels - max_in_decibels);
     }
 
     // Update Values
-    avg_amplitude = new_avg_amplitude;
-    max_amplitude = new_max_amplitude;
-    avg_in_decibels = new_avg_in_decibels;
     max_in_decibels = new_max_in_decibels;
     // TODO: track multiple statistics like median, min, max
 }
@@ -88,7 +75,7 @@ void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance) {
         if (ret != BSP_ERROR_NONE) {
             printf("Error Audio Stop (%d)\n", ret);
         }
-        target_audio_buffer_full();
+        gSensiPet.get_eq()->call(target_audio_buffer_full);
         return;
     }
 }
@@ -118,7 +105,7 @@ void BSP_AUDIO_IN_TransferComplete_CallBack(uint32_t Instance) {
         if (ret != BSP_ERROR_NONE) {
             printf("Error Audio Stop (%d)\n", ret);
         }
-        target_audio_buffer_full();
+        gSensiPet.get_eq()->call(target_audio_buffer_full);
         return;
     }
 }

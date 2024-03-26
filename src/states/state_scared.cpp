@@ -1,4 +1,5 @@
 #include "states/state_scared.h"
+#include "states/globals.h"
 #include "screen/globals.h"
 #include <cstdint>
 #include <cstdio>
@@ -8,9 +9,16 @@
 
 #define NUM_SCARED_FRAMES 2
 
+void return_to_previous() 
+{
+    gSensiPet.update_previous_state();
+}
+
 void ScaredState::init()
 {
+    printf("ENTERED SCARED\n");
     update(-1);
+    gSensiPet.get_eq()->call_in(2000ms, return_to_previous);
 }
 
 void ScaredState::update(unsigned int delta_ms)
