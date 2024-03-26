@@ -28,5 +28,6 @@ void EatingState::update(unsigned int delta_ms)
 
 void EatingState::cleanup()
 {
+    frames_eating_idx = 0;
     printf("Eating state cleaned up.\n");
 }

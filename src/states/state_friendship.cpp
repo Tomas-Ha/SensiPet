@@ -27,5 +27,6 @@ void FriendshipState::update(unsigned int delta_ms)
 
 void FriendshipState::cleanup()
 {
+    frames_friendship_idx = 0;
     printf("Friendship state cleaned up.\n");
 }
