@@ -12,7 +12,7 @@ int frames_drinking_idx = 0;
 
 void DrinkingState::init()
 {
-    update(0);
+    frames_drinking_idx = 0;
 }
 
 void DrinkingState::update(unsigned int delta_ms)
@@ -28,6 +28,5 @@ void DrinkingState::update(unsigned int delta_ms)
 
 void DrinkingState::cleanup()
 {
-    frames_drinking_idx = 0;
     printf("Drinking state cleaned up.\n");
 }

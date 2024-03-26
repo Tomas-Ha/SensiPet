@@ -11,7 +11,7 @@ int frames_hungry_idx = 0;
 
 void HungryState::init()
 {
-    update(0);
+    frames_hungry_idx = 0;
 }
 
 void HungryState::update(unsigned int delta_ms)

@@ -11,7 +11,7 @@ int frame_thirsty_idx = 0;
 
 void ThirstyState::init()
 {
-    update(0);
+    frame_thirsty_idx = 0;
 }
 
 void ThirstyState::update(unsigned int delta_ms)

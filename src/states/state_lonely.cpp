@@ -12,7 +12,7 @@ int frames_lonely_idx = 0;
 
 void LonelyState::init()
 {
-    update(0);
+    frames_lonely_idx = 0;
 }
 
 void LonelyState::update(unsigned int delta_ms)

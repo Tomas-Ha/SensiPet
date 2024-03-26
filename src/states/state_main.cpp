@@ -12,7 +12,7 @@ int frames_main_idx = 0;
 
 void MainState::init()
 {
-    update(0);
+    frames_main_idx = 0;
 }
 
 void MainState::update(unsigned int delta_ms)

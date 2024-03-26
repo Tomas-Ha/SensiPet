@@ -7,12 +7,12 @@
 #include "sprites/sprites_friendship.h"
 
 #define NUM_FRIEND_FRAMES 8
-const uint8_t * frames_friendship[NUM_FRIEND_FRAMES] = {friendship_f1, friendship_f2, friendship_f3, friendship_f4, friendship_f6, friendship_f7, friendship_f8, friendship_f5};
+const uint8_t * frames_friendship[NUM_FRIEND_FRAMES] = {friendship_f1, friendship_f2, friendship_f3, friendship_f4, friendship_f5, friendship_f6, friendship_f7, friendship_f8};
 int frames_friendship_idx = 0;
 
 void FriendshipState::init()
 {
-    update(0);
+    frames_friendship_idx = 0;
 }
 
 void FriendshipState::update(unsigned int delta_ms)
@@ -27,6 +27,5 @@ void FriendshipState::update(unsigned int delta_ms)
 
 void FriendshipState::cleanup()
 {
-    frames_friendship_idx = 0;
     printf("Friendship state cleaned up.\n");
 }

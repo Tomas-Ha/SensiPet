@@ -5,7 +5,6 @@
 void SleepState::init()
 {
     printf("Initializing sleep state.\n");
-    update(0);
 }
 
 void SleepState::update(unsigned int delta_ms)
