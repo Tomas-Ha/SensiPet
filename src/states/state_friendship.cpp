@@ -25,7 +25,6 @@ void FriendshipState::update(unsigned int delta_ms)
     gOled.display();
     frames_friendship_idx++;
     if (frames_friendship_idx >= NUM_FRIEND_FRAMES) gSensiPet.set_comfort(100);
-    }
 }
 
 void FriendshipState::cleanup()
