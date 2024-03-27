@@ -24,7 +24,6 @@ void button1_fall_handler()
 
 void button1_rise_handler()
 {
-    if (gSensiPet.get_current_state()->name == "SCARED" || gSensiPet.get_current_state()->name == "EAT"|| gSensiPet.get_current_state()->name == "DRINK") return;
     float time = gSensiPet.get_eq()->tick();
     gSensiPet.get_eq()->call(printf, "Time Diff: %f\n", time-last_pressed);
     if (time - last_pressed > 200) 

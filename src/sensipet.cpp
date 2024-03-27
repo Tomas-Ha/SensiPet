@@ -70,12 +70,13 @@ void SensiPet::cleanup_current_state()
 void SensiPet::update_state_wrapper(Action action)
 {
     if (!current_state) return;
-    // Cleanup current state
-    current_state->cleanup();
     
-    previous_state = current_state;
     SensiPetState *next_state = current_state->get_transition(action);
     if (!next_state) return;
+    
+    // Cleanup current state
+    current_state->cleanup();
+    previous_state = current_state;
 
     set_current_state(current_state->get_transition(action));
 }
@@ -83,7 +84,6 @@ void SensiPet::update_state_wrapper(Action action)
 void SensiPet::update_state(Action action)
 {
     // Defer this call to an event queue, since we may be calling it from an ISR.
-    if (action == Action::SCARED && gSensiPet.get_current_state()->name == "SCARED") return;
     queue.call(queue.event(this, &SensiPet::update_state_wrapper), action);
 }
 
