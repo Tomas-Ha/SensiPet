@@ -22,7 +22,7 @@ void EatingState::init()
 
 void EatingState::update(unsigned int delta_ms)
 {
-    if (frames_eating_idx >= NUM_EATING_FRAMES) {gSensiPet.get_eq()->call(return_to_previous); return;}
+    if (frames_eating_idx >= NUM_EATING_FRAMES) {gSensiPet.get_eq()->call(check_stats_state); return;}
     gOled.clearDisplay();
     gOled.setTextColor(WHITE);
     display_stats();
@@ -36,6 +36,10 @@ void EatingState::update(unsigned int delta_ms)
     else 
     {
         gSensiPet.set_hunger(100);
+    }
+    if (frames_eating_idx >= NUM_EATING_FRAMES && gSensiPet.get_thirst() - 15 >= 0) 
+    {
+        gSensiPet.set_thirst(gSensiPet.get_thirst() - 15);
     }
 }
 

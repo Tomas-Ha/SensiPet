@@ -18,5 +18,5 @@ void flip_display()
 void display_stats(){
     gOled.setTextSize(1);
     gOled.setTextCursor(0, 0);
-    gOled.printf("Hunger: %u%%\nThirst: %u%%\nLonely: %u%%\r", gSensiPet.get_hunger(), gSensiPet.get_thirst(), gSensiPet.get_comfort());
+    gOled.printf("Thirst: %u%%\nHunger: %u%%\nLonely: %u%%\r", gSensiPet.get_thirst(), gSensiPet.get_hunger(), gSensiPet.get_comfort());
 }

@@ -1,9 +1,48 @@
 #include "sensipet.h"
 #include "states/globals.h"
 #include "microphone/globals.h"
+#include "states/state_main.h"
+#include "states/state_sleep.h"
+#include "states/state_hungry.h"
+#include "states/state_thirsty.h"
+#include "states/state_drinking.h"
+#include "states/state_eating.h"
+#include "states/state_friendship.h"
+#include "states/state_lonely.h"
+#include "states/state_scared.h"
+
+// States
+MainState mainState;
+SleepState sleepState;
+DrinkingState drinkingState("DRINK");
+EatingState eatingState("EAT");
+FriendshipState friendshipState;
+HungryState hungryState;
+LonelyState lonelyState;
+ScaredState scaredState("SCARED");
+ThirstyState thirstyState;
 
 SensiPet::SensiPet()
 {
+    mainState.create_transition(Action::BUTTON_PRESSED, &hungryState);
+    hungryState.create_transition(Action::BUTTON_PRESSED, &thirstyState);
+    thirstyState.create_transition(Action::BUTTON_PRESSED, &lonelyState);
+    hungryState.create_transition(Action::BUTTON_HELD, &eatingState);
+    thirstyState.create_transition(Action::BUTTON_HELD, &drinkingState);
+    lonelyState.create_transition(Action::BUTTON_PRESSED, &friendshipState);
+    friendshipState.create_transition(Action::BUTTON_PRESSED, &sleepState);
+    sleepState.create_transition(Action::BUTTON_PRESSED, &mainState);
+
+    mainState.create_transition(Action::SCARED, &scaredState);
+    hungryState.create_transition(Action::SCARED, &scaredState);
+    thirstyState.create_transition(Action::SCARED, &scaredState);
+    drinkingState.create_transition(Action::SCARED, &scaredState);
+    eatingState.create_transition(Action::SCARED, &scaredState);
+    lonelyState.create_transition(Action::SCARED, &scaredState);
+    friendshipState.create_transition(Action::SCARED, &scaredState);
+    sleepState.create_transition(Action::SCARED, &scaredState);
+
+    gSensiPet.set_current_state(&mainState);
 }
 
 SensiPet::~SensiPet()
@@ -63,6 +102,33 @@ void SensiPet::update_previous_state()
 {
     // Defer this call to an event queue, since we may be calling it from an ISR.
     queue.call(queue.event(this, &SensiPet::update_previous_state_wrapper));
+}
+
+void SensiPet::update_stats_state_wrapper(SensiPetState *state)
+{
+    if (!state || !current_state) return;
+    // Cleanup current state
+    current_state->cleanup();
+
+    previous_state = current_state;
+
+    set_current_state(state);
+}
+
+void SensiPet::update_stats_state()
+{
+    if (this->get_thirst() <= 25) 
+    {
+        queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &thirstyState);
+    }
+    else if (this->get_hunger() <= 25) 
+    {
+        queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &hungryState);
+    }
+    else if (this->get_comfort() <= 25) 
+    {
+        queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &lonelyState);
+    }
 }
 
 SensiPetState *SensiPet::get_current_state()

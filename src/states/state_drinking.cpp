@@ -22,7 +22,7 @@ void DrinkingState::init()
 
 void DrinkingState::update(unsigned int delta_ms)
 {
-    if (frames_drinking_idx >= NUM_DRINKING_FRAMES) {gSensiPet.get_eq()->call(return_to_previous); return;}
+    if (frames_drinking_idx >= NUM_DRINKING_FRAMES) {gSensiPet.get_eq()->call(check_stats_state); return;}
     gOled.clearDisplay();
     gOled.setTextColor(WHITE);
     display_stats();

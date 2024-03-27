@@ -24,6 +24,7 @@ class SensiPet
 
     void update_state_wrapper(Action action);
     void update_previous_state_wrapper();
+    void update_stats_state_wrapper(SensiPetState *state);
 
     unsigned int last_tick = 0;
 
@@ -37,6 +38,7 @@ class SensiPet
 
     void update_state(Action action);
     void update_previous_state();
+    void update_stats_state();
     SensiPetState *get_current_state();
     void set_current_state(SensiPetState *state);
 
