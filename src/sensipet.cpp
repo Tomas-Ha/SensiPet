@@ -38,11 +38,14 @@ SensiPet::SensiPet()
     mainState.create_transition(Action::SCARED, &scaredState);
     hungryState.create_transition(Action::SCARED, &scaredState);
     thirstyState.create_transition(Action::SCARED, &scaredState);
-    drinkingState.create_transition(Action::SCARED, &scaredState);
-    eatingState.create_transition(Action::SCARED, &scaredState);
     lonelyState.create_transition(Action::SCARED, &scaredState);
-    friendshipState.create_transition(Action::SCARED, &scaredState);
     sleepState.create_transition(Action::SCARED, &scaredState);
+
+    mainState.create_transition(Action::FRIEND, &friendshipState);
+    hungryState.create_transition(Action::FRIEND, &friendshipState);
+    thirstyState.create_transition(Action::FRIEND, &friendshipState);
+    lonelyState.create_transition(Action::FRIEND, &friendshipState);
+    sleepState.create_transition(Action::FRIEND, &friendshipState);
 
     set_current_state(&mainState);
 }

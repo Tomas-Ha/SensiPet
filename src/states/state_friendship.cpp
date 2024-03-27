@@ -1,5 +1,6 @@
 #include "states/state_friendship.h"
 #include "screen/globals.h"
+#include "states/globals.h"
 #include <cstdint>
 #include <cstdio>
 #include <stdint.h>
@@ -17,12 +18,14 @@ void FriendshipState::init()
 
 void FriendshipState::update(unsigned int delta_ms)
 {
+    if (frames_friendship_idx >= NUM_FRIEND_FRAMES) {gSensiPet.get_eq()->call(return_to_previous); return;}
     gOled.clearDisplay();
     gOled.setTextColor(WHITE);
     gOled.drawBitmap(0, 0, frames_friendship[frames_friendship_idx], 128, 64, WHITE);
     gOled.display();
     frames_friendship_idx++;
-    if (frames_friendship_idx >= NUM_FRIEND_FRAMES) frames_friendship_idx = 0;
+    if (frames_friendship_idx >= NUM_FRIEND_FRAMES) gSensiPet.set_comfort(100);
+    }
 }
 
 void FriendshipState::cleanup()

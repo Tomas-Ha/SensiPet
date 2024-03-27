@@ -1,5 +1,6 @@
 #include "states/globals.h"
 #include "screen/globals.h"
+#include "ble/globals.h"
 #include "sprites.h"
 
 #define SCREEN_POWER_PIN 
@@ -20,5 +21,10 @@ void flip_display()
 void display_stats(){
     gOled.setTextSize(1);
     gOled.setTextCursor(0, 0);
-    gOled.printf("Thirst: %u%%\nHunger: %u%%\nLonely: %u%%\r", gSensiPet.get_thirst(), gSensiPet.get_hunger(), gSensiPet.get_comfort());
+    if (bleP2p.is_ble_running) {
+        gOled.printf("Thirst: %u%%\nHunger: %u%%\nLonely: %u%%\nScanning\r", gSensiPet.get_thirst(), gSensiPet.get_hunger(), gSensiPet.get_comfort());
+    }
+    else {
+        gOled.printf("Thirst: %u%%\nHunger: %u%%\nLonely: %u%%\r", gSensiPet.get_thirst(), gSensiPet.get_hunger(), gSensiPet.get_comfort());
+    }
 }
