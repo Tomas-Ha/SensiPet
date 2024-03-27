@@ -5,5 +5,8 @@ enum class Action
     BUTTON_PRESSED,
     BUTTON_HELD,
     SCARED,
-    FINISH
+    FINISH,
+    HUNGRY,
+    THIRSTY,
+    LONELY
 };

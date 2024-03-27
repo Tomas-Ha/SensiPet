@@ -1,4 +1,5 @@
 #include "sensipet.h"
+#include "globals.h"
 #include "states/globals.h"
 #include "microphone/globals.h"
 #include "states/state_main.h"
@@ -10,13 +11,14 @@
 #include "states/state_friendship.h"
 #include "states/state_lonely.h"
 #include "states/state_scared.h"
+#include "screen/globals.h"
 
 // States
 MainState mainState;
 SleepState sleepState;
 DrinkingState drinkingState("DRINK");
 EatingState eatingState("EAT");
-FriendshipState friendshipState;
+FriendshipState friendshipState("FRIEND");
 HungryState hungryState;
 LonelyState lonelyState;
 ScaredState scaredState("SCARED");
@@ -42,7 +44,7 @@ SensiPet::SensiPet()
     friendshipState.create_transition(Action::SCARED, &scaredState);
     sleepState.create_transition(Action::SCARED, &scaredState);
 
-    gSensiPet.set_current_state(&mainState);
+    set_current_state(&mainState);
 }
 
 SensiPet::~SensiPet()
@@ -119,15 +121,15 @@ void SensiPet::update_stats_state()
 {
     if (this->get_thirst() <= 25) 
     {
-        queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &thirstyState);
+        if (current_state != &thirstyState) queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &thirstyState);
     }
     else if (this->get_hunger() <= 25) 
     {
-        queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &hungryState);
+        if (current_state != &hungryState) queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &hungryState);
     }
     else if (this->get_comfort() <= 25) 
     {
-        queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &lonelyState);
+        if (current_state != &lonelyState) queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &lonelyState);
     }
 }
 
@@ -144,11 +146,30 @@ void SensiPet::set_current_state(SensiPetState *state)
     current_state->update(0);
 }
 
+void SensiPet::update_stats()
+{   
+    if (current_state->name == "EAT" || current_state->name == "DRINK" || current_state->name == "SCARED" || current_state->name == "FRIEND") return;
+
+    // Degrade stats overtime. This should be called every 10 seconds or so.
+    set_hunger(get_hunger() - 1);
+    set_thirst(get_thirst() - 1);
+    set_comfort(get_comfort() - 1);
+
+    if (get_hunger() < 0) set_hunger(0);
+    if (get_thirst() < 0) set_thirst(0);
+    if (get_comfort() < 0) set_comfort(0);
+
+    // Update the states
+    queue.call(queue.event(this, &SensiPet::update_stats_state));
+}
+
 void SensiPet::start()
 {
     // TODO: Change these around as you wish.
     queue.call_every(500ms, queue.event(this, &SensiPet::update_current_state));
+    queue.call_every(2s, queue.event(this, &SensiPet::update_stats));
     queue.call_every(100ms, start_recording);
+    gOled.close();
 
     // Start the main event loop with an EventQueue
     while (true)
