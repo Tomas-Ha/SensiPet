@@ -29,17 +29,13 @@ void EatingState::update(unsigned int delta_ms)
     gOled.drawBitmap(70, 5, eating_no ? frames_eating_no[frames_eating_idx] : frames_eating[frames_eating_idx], 48, 48, WHITE);
     gOled.display();
     frames_eating_idx++;
-    if (gSensiPet.get_hunger() + 5 <= 100) 
+    if (gSensiPet.get_hunger() + 5 <= 100) gSensiPet.set_hunger(gSensiPet.get_hunger() + 5);
+    else gSensiPet.set_hunger(100);
+    
+    if (frames_eating_idx >= NUM_EATING_FRAMES ) 
     {
-        gSensiPet.set_hunger(gSensiPet.get_hunger() + 5);
-    }
-    else 
-    {
-        gSensiPet.set_hunger(100);
-    }
-    if (frames_eating_idx >= NUM_EATING_FRAMES && gSensiPet.get_thirst() - 15 >= 0) 
-    {
-        gSensiPet.set_thirst(gSensiPet.get_thirst() - 15);
+        if (gSensiPet.get_thirst() - 15 >= 0) gSensiPet.set_thirst(gSensiPet.get_thirst() - 15);
+        else gSensiPet.set_thirst(0);
     }
 }
 

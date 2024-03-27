@@ -29,14 +29,8 @@ void DrinkingState::update(unsigned int delta_ms)
     gOled.drawBitmap(70, 5, drinking_no ? frames_drinking_no[frames_drinking_idx] : frames_drinking[frames_drinking_idx], 48, 48, WHITE);
     gOled.display();
     frames_drinking_idx++;
-    if (gSensiPet.get_thirst() + 5 <= 100) 
-    {
-        gSensiPet.set_thirst(gSensiPet.get_thirst() + 5);
-    }
-    else 
-    {
-        gSensiPet.set_thirst(100);
-    }
+    if (gSensiPet.get_thirst() + 5 <= 100) gSensiPet.set_thirst(gSensiPet.get_thirst() + 5);
+    else gSensiPet.set_thirst(100);
 }
 
 void DrinkingState::cleanup()

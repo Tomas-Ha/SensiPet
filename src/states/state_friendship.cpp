@@ -18,7 +18,7 @@ void FriendshipState::init()
 
 void FriendshipState::update(unsigned int delta_ms)
 {
-    if (frames_friendship_idx >= NUM_FRIEND_FRAMES) {gSensiPet.get_eq()->call(return_to_previous); return;}
+    if (frames_friendship_idx >= NUM_FRIEND_FRAMES) {gSensiPet.get_eq()->call(check_stats_state); return;}
     gOled.clearDisplay();
     gOled.setTextColor(WHITE);
     gOled.drawBitmap(0, 0, frames_friendship[frames_friendship_idx], 128, 64, WHITE);

@@ -13,6 +13,8 @@ void ScaredState::init()
 {
     printf("ENTERED SCARED\n");
     update(-1);
+    if (gSensiPet.get_comfort() - 20 >= 0) gSensiPet.set_comfort(gSensiPet.get_comfort() - 20);
+    else gSensiPet.set_comfort(0);
     gSensiPet.get_eq()->call_in(2000ms, return_to_previous);
 }
 

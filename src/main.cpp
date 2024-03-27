@@ -28,28 +28,34 @@ InterruptIn button1(BUTTON1);
 
 volatile bool button_pressed = false;
 volatile float last_pressed = 0;
+volatile int num_pressed = 0;
+
+void check_button() {
+    float time = gSensiPet.get_eq()->tick();
+    if (time - last_pressed >= 300) {
+        if (num_pressed == 2) { gSensiPet.update_state(Action::BUTTON_DOUBLE); }
+        else if (num_pressed >= 3) gSensiPet.update_state(Action::BUTTON_TRIPLE);
+    }
+}
 
 void button1_fall_handler()
 {
-    last_pressed = gSensiPet.get_eq()->tick();
+    float time = gSensiPet.get_eq()->tick();\
+    if (time - last_pressed < 300) {
+        num_pressed++;
+    } else {
+        num_pressed = 1;
+    }
+    last_pressed = time;
+    gSensiPet.get_eq()->call_in(400ms, check_button);
 }
 
 void button1_rise_handler()
 {
     float time = gSensiPet.get_eq()->tick();
-    gSensiPet.get_eq()->call(printf, "Time Diff: %f\n", time-last_pressed);
     if (time - last_pressed > 1000) {
         gSensiPet.get_eq()->call([&](){bleP2p.run();});
     }
-    else if (time - last_pressed > 200) 
-    {
-        gSensiPet.update_state(Action::BUTTON_HELD);
-    }
-    else 
-    {
-        gSensiPet.update_state(Action::BUTTON_PRESSED);
-    }
-    
 }
 
 void init()

@@ -26,14 +26,20 @@ ThirstyState thirstyState;
 
 SensiPet::SensiPet()
 {
-    mainState.create_transition(Action::BUTTON_PRESSED, &hungryState);
-    hungryState.create_transition(Action::BUTTON_PRESSED, &thirstyState);
-    thirstyState.create_transition(Action::BUTTON_PRESSED, &lonelyState);
-    hungryState.create_transition(Action::BUTTON_HELD, &eatingState);
-    thirstyState.create_transition(Action::BUTTON_HELD, &drinkingState);
-    lonelyState.create_transition(Action::BUTTON_PRESSED, &friendshipState);
-    friendshipState.create_transition(Action::BUTTON_PRESSED, &sleepState);
-    sleepState.create_transition(Action::BUTTON_PRESSED, &mainState);
+
+    mainState.create_transition(Action::BUTTON_TRIPLE, &eatingState);
+    hungryState.create_transition(Action::BUTTON_TRIPLE, &eatingState);
+    lonelyState.create_transition(Action::BUTTON_TRIPLE, &eatingState);
+    mainState.create_transition(Action::BUTTON_DOUBLE, &drinkingState);
+    hungryState.create_transition(Action::BUTTON_DOUBLE, &drinkingState);
+    thirstyState.create_transition(Action::BUTTON_DOUBLE, &drinkingState);
+    lonelyState.create_transition(Action::BUTTON_DOUBLE, &drinkingState);
+    // mainState.create_transition(Action::BUTTON_PRESSED, &hungryState);
+    // hungryState.create_transition(Action::BUTTON_PRESSED, &thirstyState);
+    // thirstyState.create_transition(Action::BUTTON_PRESSED, &lonelyState);
+    // lonelyState.create_transition(Action::BUTTON_PRESSED, &friendshipState);
+    // friendshipState.create_transition(Action::BUTTON_PRESSED, &sleepState);
+    // sleepState.create_transition(Action::BUTTON_PRESSED, &mainState);
 
     mainState.create_transition(Action::SCARED, &scaredState);
     hungryState.create_transition(Action::SCARED, &scaredState);
@@ -46,6 +52,10 @@ SensiPet::SensiPet()
     thirstyState.create_transition(Action::FRIEND, &friendshipState);
     lonelyState.create_transition(Action::FRIEND, &friendshipState);
     sleepState.create_transition(Action::FRIEND, &friendshipState);
+
+    set_comfort(100);
+    set_hunger(100);
+    set_thirst(100);
 
     set_current_state(&mainState);
 }
@@ -133,6 +143,10 @@ void SensiPet::update_stats_state()
     else if (this->get_comfort() <= 25) 
     {
         if (current_state != &lonelyState) queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &lonelyState);
+    }
+    else 
+    {
+        if (current_state != &mainState) queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &mainState);
     }
 }
 
