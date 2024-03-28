@@ -13,6 +13,14 @@ constexpr std::array<uint8_t, 43> img_bar {
     0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x3e
 };
 
+constexpr std::size_t img_wifi_width = 9;
+
+constexpr std::size_t img_wifi_height = 8;
+
+constexpr std::array<uint8_t, 9> img_wifi {
+    0xc0, 0x00, 0xe0, 0x00, 0xf0, 0x00, 0xf8, 0x00, 0xfc
+};
+
 constexpr std::size_t img_background_width = 128;
 
 constexpr std::size_t img_background_height = 64;

@@ -32,4 +32,8 @@ void display_stats(){
     for (std::size_t i = 0; i < ((std::size_t) 3); i++) {
         bars[i].render(gOled, i);
     }
+
+    if (bleP2p.is_ble_running) {
+        gOled.drawBitmap(125 - img_wifi_height, 0, img_wifi.data(), img_bar_width, img_wifi_height, WHITE);
+    }
 }
