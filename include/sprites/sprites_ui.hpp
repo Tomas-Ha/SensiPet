@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstddef>
+#include <cstdint>
 #include <array>
 
 constexpr std::size_t img_bar_width = 43;
