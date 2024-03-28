@@ -12,6 +12,9 @@
 #include "states/state_lonely.h"
 #include "states/state_scared.h"
 #include "screen/globals.h"
+#include <cstdio>
+
+#define TIME_UNTIL_SLEEP 10000
 
 // States
 MainState mainState;
@@ -72,6 +75,14 @@ void SensiPet::init_current_state()
 
 void SensiPet::update_current_state()
 {
+    // TODO: This needs a better solution.
+    if (sleeping())
+    {
+        gOled.clearDisplay();
+        gOled.display();
+        return;
+    }
+
     unsigned int current_time = queue.tick();
     unsigned int elapsed_time = current_time - last_tick;
     current_state->update(elapsed_time);
@@ -160,7 +171,11 @@ void SensiPet::set_current_state(SensiPetState *state)
     current_state = state;
     // Initialize the current state and begin updates
     current_state->init();
+
+    if (sleeping()) return;
+    
     current_state->update(0);
+    last_state_change = queue.tick();
 }
 
 void SensiPet::update_stats()
@@ -180,13 +195,50 @@ void SensiPet::update_stats()
     queue.call(queue.event(this, &SensiPet::update_stats_state));
 }
 
+void SensiPet::check_sleep()
+{
+    unsigned int current_time = queue.tick();
+    if (current_time - last_state_change < TIME_UNTIL_SLEEP) return;
+
+    // Otherwise, we should try to fall asleep
+    this->sleep();
+}
+
+void SensiPet::wakeup()
+{
+    last_state_change = queue.tick();
+    register_events();
+    is_sleeping = false;
+}
+
+void SensiPet::sleep()
+{
+    remove_events();
+    gOled.clearDisplay();
+    gOled.display();
+    is_sleeping = true;
+}
+
+void SensiPet::register_events()
+{
+    main_update_event_id = queue.call_every(500ms, queue.event(this, &SensiPet::update_current_state));
+    sleep_check_event_id = queue.call_every(5s, queue.event(this, &SensiPet::check_sleep));
+    microphone_event_id = queue.call_every(100ms, start_recording);
+}
+
+void SensiPet::remove_events()
+{
+    queue.cancel(main_update_event_id);
+    queue.cancel(sleep_check_event_id);
+    queue.cancel(microphone_event_id);
+}
+
 void SensiPet::start()
 {
-    // TODO: Change these around as you wish.
-    queue.call_every(500ms, queue.event(this, &SensiPet::update_current_state));
+    // Update stats should always happen
     queue.call_every(2s, queue.event(this, &SensiPet::update_stats));
-    queue.call_every(100ms, start_recording);
-    gOled.close();
+
+    register_events();
 
     // Start the main event loop with an EventQueue
     while (true)
