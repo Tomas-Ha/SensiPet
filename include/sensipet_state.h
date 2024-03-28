@@ -2,6 +2,7 @@
 
 #include "action.h"
 #include "mbed.h"
+#include <string>
 #include <unordered_map>
 
 /// @brief Keeps track of details for a current state, as well as actions that lead this state into others.
@@ -11,6 +12,8 @@ class SensiPetState
     std::unordered_map<Action, SensiPetState *> state_transistions;
 
   public:
+    string name = "";
+
     // Create a transition from <action_type> to <result_state>.
     void create_transition(Action action_type, SensiPetState *result_state);
 

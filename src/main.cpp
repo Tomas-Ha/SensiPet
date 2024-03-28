@@ -3,63 +3,73 @@
 #include "sensipet_state.h"
 #include "screen/globals.h"
 #include "microphone/globals.h"
-#include "state_thirsty.h"
 #include "states/globals.h"
+#include "ble/globals.h"
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <limits>
-#include "states/state_main.h"
-#include "states/state_sleep.h"
-#include "states/state_hungry.h"
-#include "states/state_drinking.h"
-#include "states/state_eating.h"
-#include "states/state_friendship.h"
-#include "states/state_lonely.h"
-#include "states/state_scared.h"
+#include <string>
+
+const char BluetoothP2P::DEVICE_NAME_PREFIX[] = "PET_";
+
+/** Schedule processing of events from the BLE middleware in the event queue. */
+void schedule_ble_events(BLE::OnEventsToProcessCallbackContext *context) {
+    gSensiPet.get_eq()->call(Callback<void()>(&context->ble, &BLE::processEvents));
+}
+
+BLE &bleInstance = BLE::Instance();
+/* look for other device and then settle on a role */
+BluetoothP2P bleP2p(bleInstance, gSensiPet.get_eq());
+
 
 // Setup button interrupts
 InterruptIn button1(BUTTON1);
 
-// States
-MainState mainState;
-SleepState sleepState;
-DrinkingState drinkingState;
-EatingState eatingState;
-FriendshipState friendshipState;
-HungryState hungryState;
-LonelyState lonelyState;
-ScaredState scaredState;
-ThirstyState thirstyState;
-
 volatile bool button_pressed = false;
+volatile float last_pressed = 0;
+volatile int num_pressed = 0;
+
+void check_button() {
+    float time = gSensiPet.get_eq()->tick();
+    if (time - last_pressed >= 300) {
+        if (num_pressed == 2) { gSensiPet.update_state(Action::BUTTON_DOUBLE); }
+        else if (num_pressed >= 3) gSensiPet.update_state(Action::BUTTON_TRIPLE);
+    }
+}
 
 void button1_fall_handler()
 {
-    gSensiPet.update_state(Action::BUTTON_PRESSED);
+    if (gSensiPet.sleeping()) gSensiPet.wakeup();
+
+    float time = gSensiPet.get_eq()->tick();\
+    if (time - last_pressed < 300) {
+        num_pressed++;
+    } else {
+        num_pressed = 1;
+    }
+    last_pressed = time;
+    gSensiPet.get_eq()->call_in(400ms, check_button);
 }
 
-void setup_states()
+void button1_rise_handler()
 {
-    mainState.create_transition(Action::BUTTON_PRESSED, &hungryState);
-    hungryState.create_transition(Action::BUTTON_PRESSED, &thirstyState);
-    thirstyState.create_transition(Action::BUTTON_PRESSED, &drinkingState);
-    drinkingState.create_transition(Action::BUTTON_PRESSED, &eatingState);
-    eatingState.create_transition(Action::BUTTON_PRESSED, &lonelyState);
-    lonelyState.create_transition(Action::BUTTON_PRESSED, &friendshipState);
-    friendshipState.create_transition(Action::BUTTON_PRESSED, &sleepState);
-    sleepState.create_transition(Action::BUTTON_PRESSED, &mainState);
-
-    gSensiPet.set_current_state(&mainState);
+    float time = gSensiPet.get_eq()->tick();
+    if (time - last_pressed > 1000) {
+        gSensiPet.get_eq()->call([&](){bleP2p.run();});
+    }
 }
 
 void init()
 {
     init_microphone();
-    setup_states();
+
+    // this will allow us to schedule ble events using our event queue
+    bleInstance.onEventsToProcess(schedule_ble_events);
 
     // Setup button interrupts
     button1.fall(button1_fall_handler);
+    button1.rise(button1_rise_handler);
 }
 
 int main()
