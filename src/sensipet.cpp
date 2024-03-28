@@ -18,7 +18,6 @@
 
 // States
 MainState mainState;
-SleepState sleepState;
 DrinkingState drinkingState("DRINK");
 EatingState eatingState("EAT");
 FriendshipState friendshipState("FRIEND");
@@ -48,13 +47,13 @@ SensiPet::SensiPet()
     hungryState.create_transition(Action::SCARED, &scaredState);
     thirstyState.create_transition(Action::SCARED, &scaredState);
     lonelyState.create_transition(Action::SCARED, &scaredState);
-    sleepState.create_transition(Action::SCARED, &scaredState);
 
     mainState.create_transition(Action::FRIEND, &friendshipState);
     hungryState.create_transition(Action::FRIEND, &friendshipState);
     thirstyState.create_transition(Action::FRIEND, &friendshipState);
     lonelyState.create_transition(Action::FRIEND, &friendshipState);
-    sleepState.create_transition(Action::FRIEND, &friendshipState);
+    eatingState.create_transition(Action::FRIEND, &friendshipState);
+    drinkingState.create_transition(Action::FRIEND, &friendshipState);
 
     set_comfort(100);
     set_hunger(100);
@@ -198,7 +197,7 @@ void SensiPet::update_stats()
 void SensiPet::check_sleep()
 {
     unsigned int current_time = queue.tick();
-    if (current_time - last_state_change < TIME_UNTIL_SLEEP) return;
+    if (current_time - last_state_change < TIME_UNTIL_SLEEP || bleP2p.is_ble_running) return;
 
     // Otherwise, we should try to fall asleep
     this->sleep();
