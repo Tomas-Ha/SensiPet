@@ -1,6 +1,6 @@
 # example repository config (see 'hg help config' for more info)
 [paths]
-mbed-studio-cache = /Users/tomas/Library/Application Support/Mbed Studio/library-cache/os.mbed.com/users/nkhorman/code/Adafruit_GFX
+mbed-studio-cache = c:\Users\stewa\AppData\Local\Mbed Studio\library-cache\os.mbed.com\users\nkhorman\code\Adafruit_GFX
 default = https://os.mbed.com/users/nkhorman/code/Adafruit_GFX/
 
 # path aliases to other clones of this repo in URLs or filesystem paths

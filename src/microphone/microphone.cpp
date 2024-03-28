@@ -1,68 +1,21 @@
-#include "mbed.h"
-#include "stm32l475e_iot01_audio.h"
-#include "Adafruit_SSD1306.h"
-#include "Adafruit_GFX.h"
+#include "microphone/globals.h"
+#include "screen/globals.h"
 #include "sprites.h"
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>
-#include <limits>
+#include "states/globals.h"
 
-static uint16_t PCM_Buffer[PCM_BUFFER_LEN / 2];
-static BSP_AUDIO_Init_t MicParams;
+uint16_t PCM_Buffer[PCM_BUFFER_LEN / 2];
+BSP_AUDIO_Init_t MicParams;
 
-static DigitalOut led(LED1);
-static EventQueue ev_queue;
+size_t AUDIO_RECORDING_LENGTH = 10; // Audio recording length in ms (sensitivity)
+size_t TARGET_AUDIO_BUFFER_NB_SAMPLES = (size_t) AUDIO_SAMPLING_FREQUENCY * ((double) AUDIO_RECORDING_LENGTH / 1000);
+int16_t *TARGET_AUDIO_BUFFER = (int16_t*)calloc(TARGET_AUDIO_BUFFER_NB_SAMPLES, sizeof(int16_t));
+size_t TARGET_AUDIO_BUFFER_IX = 0;
 
-// an I2C sub-class that provides a constructed default
-class I2CPreInit : public I2C
-{
-  public:
-    I2CPreInit(PinName sda, PinName scl) : I2C(sda, scl)
-    {
-        frequency(400000);
-        start();
-    };
-};
-
-I2CPreInit gI2C(PB_9, PB_8);
-Adafruit_SSD1306_I2c gOled(gI2C, LED1, 0x78, 64, 128);
-
-// Place to store final audio (alloc on the heap), here two seconds...
-static size_t AUDIO_RECORDING_LENGTH = 10; // Audio recording length in ms (sensitivity)
-static size_t TARGET_AUDIO_BUFFER_NB_SAMPLES = (size_t) AUDIO_SAMPLING_FREQUENCY * ((double) AUDIO_RECORDING_LENGTH / 1000);
-static int16_t *TARGET_AUDIO_BUFFER = (int16_t*)calloc(TARGET_AUDIO_BUFFER_NB_SAMPLES, sizeof(int16_t));
-static size_t TARGET_AUDIO_BUFFER_IX = 0;
-
-static float max_amp_change = 20;
+float max_amp_change = 15;
 float avg_amplitude = 0;
 float max_amplitude = 0;
 float avg_in_decibels = 0;
 float max_in_decibels = 0;
-
-int x = 0;
-int y = -2;
-int curr_frame = 0;
-bool is_scared = false;
-bool go_left = false;
-
-void reset_screen() {
-    is_scared = false;
-    // gOled.clearDisplay();
-    // gOled.drawBitmap(0, -2, smile, 128, 64, WHITE);
-    // gOled.display();
-}
-
-void update_idle_frame() {
-    if (is_scared) return;
-    if (x + 48 >= 128) go_left = true;
-    if (x <= 0) go_left = false;
-    x += (go_left ? -2 : 2);
-    curr_frame = 1 - curr_frame;
-    gOled.clearDisplay();
-    gOled.drawBitmap(x, y, curr_frame == 0 ? idle_frame_1 : idle_frame_2, 48, 48, WHITE);
-    gOled.display();
-}
 
 // callback that gets invoked when TARGET_AUDIO_BUFFER is full
 void target_audio_buffer_full() {
@@ -95,13 +48,9 @@ void target_audio_buffer_full() {
 
     // Check for jumpscare
     if (new_max_in_decibels - max_in_decibels >= max_amp_change) {
-        is_scared = true;
-        gOled.clearDisplay();
-        gOled.drawBitmap(x, y, scared_frame, 48, 48, WHITE);
-        gOled.display();
         printf("SCARED\n");
-        ev_queue.call_in(1000ms, reset_screen);
 
+        gSensiPet.update_state(Action::SCARED);
         printf("MAX: %f => %f\n", new_max_amplitude, new_max_in_decibels);
         // printf("MIN: %f => %f\n", new_min_amplitude, new_min_in_decibels);
         printf("MAX_DIFF: %f\n\n", new_max_in_decibels - max_in_decibels);
@@ -139,7 +88,7 @@ void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance) {
         if (ret != BSP_ERROR_NONE) {
             printf("Error Audio Stop (%d)\n", ret);
         }
-        ev_queue.call(&target_audio_buffer_full);
+        target_audio_buffer_full();
         return;
     }
 }
@@ -169,7 +118,7 @@ void BSP_AUDIO_IN_TransferComplete_CallBack(uint32_t Instance) {
         if (ret != BSP_ERROR_NONE) {
             printf("Error Audio Stop (%d)\n", ret);
         }
-        ev_queue.call(&target_audio_buffer_full);
+        target_audio_buffer_full();
         return;
     }
 }
@@ -205,15 +154,10 @@ void start_recording() {
         printf("Error Audio Record (%d)\n", ret);
         return;
     }
-    // else {
-    //     printf("OK Audio Record\n");
-    // }
 }
 
-int main() {
-    // Reference for code: https://github.com/janjongboom/b-l475e-iot01a-audio-mbed/tree/master
-    gOled.setTextSize(3);
-
+int init_microphone()
+{
     if (!TARGET_AUDIO_BUFFER) {
         printf("Failed to allocate TARGET_AUDIO_BUFFER buffer\n");
         return 0;
@@ -235,8 +179,5 @@ int main() {
         printf("OK Audio Init\t(Audio Freq=%d)\r\n", AUDIO_SAMPLING_FREQUENCY);
     }
 
-    ev_queue.call_every(100ms, start_recording);
-    ev_queue.call_every(500ms, update_idle_frame);
-
-    ev_queue.dispatch_forever();
+    return 0;
 }
