@@ -25,11 +25,21 @@ class SensiPet
     void update_state_wrapper(Action action);
     void update_previous_state_wrapper();
     void update_stats_state_wrapper(SensiPetState *state);
+    void check_sleep();
+    void update_stats();
 
+    void register_events();
+    void remove_events();
+
+    unsigned int last_state_change = 0;
     unsigned int last_tick = 0;
 
-    // Update stats and check deep sleep every now and then.
-    void update_stats();
+    bool is_sleeping = false;
+
+    // Event IDs
+    int microphone_event_id;
+    int main_update_event_id;
+    int sleep_check_event_id;
 
   public:
     SensiPet();
@@ -44,6 +54,11 @@ class SensiPet
     void update_stats_state();
     SensiPetState *get_current_state();
     void set_current_state(SensiPetState *state);
+
+    void wakeup();
+    void sleep();
+
+    inline bool sleeping() { return is_sleeping; }
 
     // Getters and setters for pet stats
     inline int16_t get_thirst()

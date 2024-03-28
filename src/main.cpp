@@ -40,6 +40,8 @@ void check_button() {
 
 void button1_fall_handler()
 {
+    if (gSensiPet.sleeping()) gSensiPet.wakeup();
+
     float time = gSensiPet.get_eq()->tick();\
     if (time - last_pressed < 300) {
         num_pressed++;
