@@ -3,10 +3,11 @@
 #include <cstdint>
 #include <array>
 
+#include "Adafruit_SSD1306.h"
 #include "sprites/sprites_ui.hpp"
 
 class BarSprite {
-    std::array<std::uint8_t, std::size(img_bar)> buf{img_bar};
+    std::array<std::uint8_t, img_bar.size()> buf{img_bar};
 
 public:
 
@@ -15,7 +16,7 @@ public:
     BarSprite(BarSprite&& other) = delete;
     BarSprite& operator=(BarSprite&& other) = delete;
 
-    constexpr BarSprite();
+    constexpr BarSprite() {}
 
 
     void set_percentage(float val);

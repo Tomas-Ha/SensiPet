@@ -20,7 +20,7 @@ void flip_display()
 }
 
 void display_stats(){
-    gOled.drawBitmap(0, 0, img_background, img_background_width, img_background_height, WHITE);
+    gOled.drawBitmap(0, 0, img_background.data(), img_background_width, img_background_height, WHITE);
 
     bars[0].set_percentage(gSensiPet.get_thirst());
     bars[1].set_percentage(gSensiPet.get_hunger());
