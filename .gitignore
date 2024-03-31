@@ -6,3 +6,5 @@ mbed-os
 BUILD
 .DS_Store
 Adafruit_GFX
+BSP_B-L475E-IOT01
+LSM6DSL

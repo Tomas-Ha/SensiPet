@@ -5,6 +5,8 @@
 #include "microphone/globals.h"
 #include "states/globals.h"
 #include "ble/globals.h"
+#include "stm32l475e_iot01_tsensor.h"
+#include "LSM6DSLSensor.h"
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -60,9 +62,30 @@ void button1_rise_handler()
     }
 }
 
+void sensor_irq_handler()
+{
+    if (gSensiPet.sleeping()) 
+    { 
+        gSensiPet.wakeup();
+        if (gSensiPet.get_current_state()->name != "SCARED") gSensiPet.update_state(Action::SCARED);
+    }
+}
+
+static DevI2C lsm6dslI2c(PB_11,PB_10);
+static LSM6DSLSensor lsm6dsl(&lsm6dslI2c, LSM6DSL_ACC_GYRO_I2C_ADDRESS_LOW, PD_11); 
+
 void init()
 {
     init_microphone();
+    BSP_TSENSOR_Init();
+    
+    lsm6dsl.init(NULL);
+    lsm6dsl.enable_x();
+    lsm6dsl.enable_g();
+    lsm6dsl.enable_single_tap_detection();
+    lsm6dsl.enable_single_tap_detection();
+    lsm6dsl.attach_int1_irq(sensor_irq_handler);
+
 
     // this will allow us to schedule ble events using our event queue
     bleInstance.onEventsToProcess(schedule_ble_events);
