@@ -12,6 +12,10 @@
 #include "states/state_lonely.h"
 #include "states/state_scared.h"
 #include "screen/globals.h"
+#include "stm32l475e_iot01_tsensor.h"
+#include "VL53L0X.h"
+#include "DevI2C.h"
+#include <cstdint>
 #include <cstdio>
 
 #define TIME_UNTIL_SLEEP 10000
@@ -25,6 +29,10 @@ HungryState hungryState;
 LonelyState lonelyState;
 ScaredState scaredState("SCARED");
 ThirstyState thirstyState;
+
+static DevI2C vl53l0xI2c(PB_11,PB_10);
+static DigitalOut shutdown_pin(PC_6);
+static VL53L0X vl53l0x(&vl53l0xI2c, &shutdown_pin, PC_7);
 
 SensiPet::SensiPet()
 {
@@ -180,15 +188,32 @@ void SensiPet::set_current_state(SensiPetState *state)
 void SensiPet::update_stats()
 {   
     if (current_state->name == "EAT" || current_state->name == "DRINK" || current_state->name == "SCARED" || current_state->name == "FRIEND") return;
-
+    
     // Degrade stats overtime. This should be called every 10 seconds or so.
+    if (!is_sleeping) {
+        float curr_temp = BSP_TSENSOR_ReadTemp();
+        set_thirst(get_thirst() - (int16_t)(curr_temp/10));
+
+        uint32_t distance;
+        int status = vl53l0x.get_distance(&distance);
+        if (status == VL53L0X_ERROR_NONE && distance < 100) {
+            set_comfort(get_comfort() + 10);
+            last_state_change = queue.tick();
+        } else {
+            set_comfort(get_comfort() - 2);
+        }
+        
+    }
+    else {
+        set_comfort(get_comfort() - 1);
+        set_thirst(get_thirst() - 1);
+    }
     set_hunger(get_hunger() - 1);
-    set_thirst(get_thirst() - 1);
-    set_comfort(get_comfort() - 1);
 
     if (get_hunger() < 0) set_hunger(0);
     if (get_thirst() < 0) set_thirst(0);
     if (get_comfort() < 0) set_comfort(0);
+    if (get_comfort() > 100) set_comfort(100);
 
     // Update the states
     queue.call(queue.event(this, &SensiPet::update_stats_state));
@@ -234,6 +259,8 @@ void SensiPet::remove_events()
 
 void SensiPet::start()
 {
+    vl53l0x.init_sensor(VL53L0X_DEFAULT_ADDRESS);
+
     // Update stats should always happen
     queue.call_every(2s, queue.event(this, &SensiPet::update_stats));
 
