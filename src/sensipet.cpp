@@ -192,7 +192,7 @@ void SensiPet::update_stats()
     // Degrade stats overtime. This should be called every 10 seconds or so.
     if (!is_sleeping) {
         float curr_temp = BSP_TSENSOR_ReadTemp();
-        set_thirst(get_thirst() - (int16_t)(curr_temp/20));
+        set_thirst(get_thirst() - (int16_t)(curr_temp/10));
 
         uint32_t distance;
         int status = vl53l0x.get_distance(&distance);
