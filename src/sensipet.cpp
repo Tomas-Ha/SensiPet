@@ -197,9 +197,9 @@ void SensiPet::update_stats()
         uint32_t distance;
         int status = vl53l0x.get_distance(&distance);
         if (status == VL53L0X_ERROR_NONE && distance < 100) {
-        set_comfort(get_comfort() + 10);
+            set_comfort(get_comfort() + 10);
         } else {
-            set_comfort(get_comfort() - 1);
+            set_comfort(get_comfort() - 2);
         }
         
     }
