@@ -83,7 +83,6 @@ void init()
     lsm6dsl.enable_x();
     lsm6dsl.enable_g();
     lsm6dsl.enable_tilt_detection();
-    lsm6dsl.enable_single_tap_detection();
     lsm6dsl.attach_int1_irq(sensor_irq_handler);
 
 
