@@ -198,6 +198,7 @@ void SensiPet::update_stats()
         int status = vl53l0x.get_distance(&distance);
         if (status == VL53L0X_ERROR_NONE && distance < 100) {
             set_comfort(get_comfort() + 10);
+            last_state_change = queue.tick();
         } else {
             set_comfort(get_comfort() - 2);
         }
