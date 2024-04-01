@@ -41,7 +41,9 @@ This project consists of the following file structure:
 
 ## Setup and Running
 First, clone this repository onto your computer into the `Mbed Programs` folder used by Mbed Studio, using the following command:
-```git clone https://github.com/Tomas-Ha/BSP-Audio-dB-Recording.git```
+```
+git clone https://github.com/Tomas-Ha/SensiPet.git
+```
 Then, ensure that the project has been added to mbed. Make sure that the `mbed-os` and all other sensor libraries have been installed. If not, refer to the *File Navigation* section above for a link to the drivers (these links should also be accessible within the `.lib` files). When installing Adafruit, be sure to set the width and height to 128 by 64 within the Adafruit library.
 
 To set up the `SSD1306`, connect the SDA pin on the SSD1306 to the D14 pin on the B-L475E-IOT1A Discovery board, and the SCL pin on the SSD1306 to the D15 pin. Then connect the VCC pin to the 3.3V pin on the Discovery board, and the GND pin to the GND pin on the Discovery board.
