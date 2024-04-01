@@ -205,7 +205,7 @@ void SensiPet::update_stats()
         // Decrease loneliness if petting the pet, otherwise increase loneliness
         uint32_t distance;
         int status = vl53l0x.get_distance(&distance);
-        if (status == VL53L0X_ERROR_NONE && distance < 100) {
+        if (status == VL53L0X_ERROR_NONE && distance < 100 && distance > 0) {
             set_comfort(get_comfort() + 10);
             last_state_change = queue.tick();
         } else {
