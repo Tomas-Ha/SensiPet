@@ -37,7 +37,7 @@ This project consists of the following file structure:
 - `mbed_app.json`: Config file for the mbed app project
 - `.png` files: Sprite images for the UI which were later converted
 
-_**In general, please begin with `main.cpp` and follow on to `sensipet.cpp`.**_
+**In general, please begin with `main.cpp` and follow on to `sensipet.cpp`.**
 
 ## Setup and Running
 First, clone this repository onto your computer into the `Mbed Programs` folder used by Mbed Studio, using the following command:
@@ -49,6 +49,6 @@ To set up the `SSD1306`, connect the SDA pin on the SSD1306 to the D14 pin on th
 Finally, flash the program from Mbed Studio onto the Discovery board. You should now see the SensiPet.
 To feed the pet, press the user button 3 times quickly (no more than 300ms between each press).
 To give the pet water, press the user button twice quickly.
-To make the pet less lonely, hold your hand over the board (next to the NFC tag). You can also make the pet less lonely if you have a friend with another board. Simply hold the user button on both boards for _more than a second_ and release. Then, hold the boards close together and watch the pets play!
+To make the pet less lonely, hold your hand over the board (next to the NFC tag). You can also make the pet less lonely if you have a friend with another board. Simply hold the user button on both boards for **more than a second** and release. Then, hold the boards close together and watch the pets play!
 
 Most importantly, have fun!
