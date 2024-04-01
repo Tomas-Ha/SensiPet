@@ -51,6 +51,7 @@ To set up the `SSD1306`, connect the SDA pin on the SSD1306 to the D14 pin on th
 Finally, flash the program from Mbed Studio onto the Discovery board. You should now see the SensiPet.
 To feed the pet, press the user button 3 times quickly (no more than 300ms between each press).
 To give the pet water, press the user button twice quickly.
-To make the pet less lonely, hold your hand over the board (next to the NFC tag). You can also make the pet less lonely if you have a friend with another board. Simply hold the user button on both boards for **more than a second** and release. Then, hold the boards close together and watch the pets play!
+To make the pet less lonely, hold your hand over the board (next to the NFC tag). You can also make the pet less lonely if you have a friend with another board as well. Simply hold the user button on both boards for **more than a second** and release. Then, hold the boards close together and watch the pets play!
+If the pet has not been interacted with within the past 10 seconds, it will fall asleep. To wake it up, simply press the button or shake the board. But be careful, shaking the board (as well as making a loud noise), scares the pet and increases their loneliness.
 
 Most importantly, have fun!
