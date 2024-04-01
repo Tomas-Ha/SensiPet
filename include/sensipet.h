@@ -25,6 +25,7 @@ class SensiPet
     void update_state_wrapper(Action action);
     void update_previous_state_wrapper();
     void update_stats_state_wrapper(SensiPetState *state);
+    
     void check_sleep();
     void update_stats();
 

@@ -22,6 +22,7 @@ void flip_display()
     gOled.display();
 }
 
+/// @brief sets the percentage and displays the bars for all of the sensipet stats
 void display_stats(){
     gOled.drawBitmap(0, 0, img_background.data(), img_background_width, img_background_height, WHITE);
 
@@ -33,6 +34,7 @@ void display_stats(){
         bars[i].render(gOled, i);
     }
 
+    // Show bluetooth symbol if ble is running
     if (bleP2p.is_ble_running) {
         gOled.drawBitmap(125 - img_wifi_height, 0, img_wifi.data(), img_bar_width, img_wifi_height, WHITE);
     }

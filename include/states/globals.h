@@ -3,7 +3,7 @@
 #include "sensipet.h"
 #include "sensipet_state.h"
 
-// Global states
+// Global states and state change wrapper functions
 extern SensiPet gSensiPet;
 
 inline void return_to_previous() 

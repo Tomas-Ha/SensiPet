@@ -15,7 +15,7 @@ class I2CPreInit : public I2C
 };
 
 extern I2CPreInit gI2C;
-extern Adafruit_SSD1306_I2c gOled;
+extern Adafruit_SSD1306_I2c gOled; // Global variable for our oled screen
 
 extern void power_on_display();
 extern void power_off_display();

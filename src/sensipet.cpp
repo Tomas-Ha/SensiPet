@@ -36,7 +36,7 @@ static VL53L0X vl53l0x(&vl53l0xI2c, &shutdown_pin, PC_7);
 
 SensiPet::SensiPet()
 {
-
+    // Init FSM transitions
     mainState.create_transition(Action::BUTTON_TRIPLE, &eatingState);
     hungryState.create_transition(Action::BUTTON_TRIPLE, &eatingState);
     lonelyState.create_transition(Action::BUTTON_TRIPLE, &eatingState);
@@ -44,12 +44,6 @@ SensiPet::SensiPet()
     hungryState.create_transition(Action::BUTTON_DOUBLE, &drinkingState);
     thirstyState.create_transition(Action::BUTTON_DOUBLE, &drinkingState);
     lonelyState.create_transition(Action::BUTTON_DOUBLE, &drinkingState);
-    // mainState.create_transition(Action::BUTTON_PRESSED, &hungryState);
-    // hungryState.create_transition(Action::BUTTON_PRESSED, &thirstyState);
-    // thirstyState.create_transition(Action::BUTTON_PRESSED, &lonelyState);
-    // lonelyState.create_transition(Action::BUTTON_PRESSED, &friendshipState);
-    // friendshipState.create_transition(Action::BUTTON_PRESSED, &sleepState);
-    // sleepState.create_transition(Action::BUTTON_PRESSED, &mainState);
 
     mainState.create_transition(Action::SCARED, &scaredState);
     hungryState.create_transition(Action::SCARED, &scaredState);
@@ -63,6 +57,7 @@ SensiPet::SensiPet()
     eatingState.create_transition(Action::FRIEND, &friendshipState);
     drinkingState.create_transition(Action::FRIEND, &friendshipState);
 
+    // Init Sensipet stats and state
     set_comfort(100);
     set_hunger(100);
     set_thirst(100);
@@ -82,7 +77,6 @@ void SensiPet::init_current_state()
 
 void SensiPet::update_current_state()
 {
-    // TODO: This needs a better solution.
     if (sleeping())
     {
         gOled.clearDisplay();
@@ -104,13 +98,15 @@ void SensiPet::update_state_wrapper(Action action)
 {
     if (!current_state) return;
     
+    // Get next state
     SensiPetState *next_state = current_state->get_transition(action);
     if (!next_state) return;
     
-    // Cleanup current state
+    // Cleanup and store current (now previous) state
     current_state->cleanup();
     previous_state = current_state;
 
+    // Transition
     set_current_state(current_state->get_transition(action));
 }
 
@@ -126,9 +122,14 @@ void SensiPet::update_previous_state_wrapper()
     // Cleanup current state
     current_state->cleanup();
 
+    // Store current state in tmp
+    SensiPetState *tmp = current_state;
+
+    // Return to previous state
     set_current_state(previous_state);
 
-    previous_state = current_state;
+    // Place old current state in previous_state
+    previous_state = tmp;
 }
 
 void SensiPet::update_previous_state()
@@ -140,16 +141,20 @@ void SensiPet::update_previous_state()
 void SensiPet::update_stats_state_wrapper(SensiPetState *state)
 {
     if (!state || !current_state) return;
+    
     // Cleanup current state
     current_state->cleanup();
 
+    // Store current state as previous state
     previous_state = current_state;
 
+    // Transition to state
     set_current_state(state);
 }
 
 void SensiPet::update_stats_state()
 {
+    // Check thirst, then hunger, then comfort (loneliness). If any are below, update state to be corresponding state
     if (this->get_thirst() <= 25) 
     {
         if (current_state != &thirstyState) queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &thirstyState);
@@ -164,6 +169,7 @@ void SensiPet::update_stats_state()
     }
     else 
     {
+        // Otherwise idle
         if (current_state != &mainState) queue.call(queue.event(this, &SensiPet::update_stats_state_wrapper), &mainState);
     }
 }
@@ -187,13 +193,16 @@ void SensiPet::set_current_state(SensiPetState *state)
 
 void SensiPet::update_stats()
 {   
+    // Don't update stats if we are in a state that modifies stats
     if (current_state->name == "EAT" || current_state->name == "DRINK" || current_state->name == "SCARED" || current_state->name == "FRIEND") return;
     
     // Degrade stats overtime. This should be called every 10 seconds or so.
     if (!is_sleeping) {
+        // Degrade thirst based on temperature
         float curr_temp = BSP_TSENSOR_ReadTemp();
         set_thirst(get_thirst() - (int16_t)(curr_temp/10));
 
+        // Decrease loneliness if petting the pet, otherwise increase loneliness
         uint32_t distance;
         int status = vl53l0x.get_distance(&distance);
         if (status == VL53L0X_ERROR_NONE && distance < 100) {
@@ -205,22 +214,25 @@ void SensiPet::update_stats()
         
     }
     else {
+        // If sleeping, modify stats more slowly
         set_comfort(get_comfort() - 1);
         set_thirst(get_thirst() - 1);
     }
     set_hunger(get_hunger() - 1);
 
+    // Ensure stats do not exceed bounds
     if (get_hunger() < 0) set_hunger(0);
     if (get_thirst() < 0) set_thirst(0);
     if (get_comfort() < 0) set_comfort(0);
     if (get_comfort() > 100) set_comfort(100);
 
-    // Update the states
+    // Update the state accordingly
     queue.call(queue.event(this, &SensiPet::update_stats_state));
 }
 
 void SensiPet::check_sleep()
 {
+    // Check if no recent interraction. If so, we can sleep
     unsigned int current_time = queue.tick();
     if (current_time - last_state_change < TIME_UNTIL_SLEEP || bleP2p.is_ble_running) return;
 
@@ -259,6 +271,7 @@ void SensiPet::remove_events()
 
 void SensiPet::start()
 {
+    // Init TOF sensor
     vl53l0x.init_sensor(VL53L0X_DEFAULT_ADDRESS);
 
     // Update stats should always happen

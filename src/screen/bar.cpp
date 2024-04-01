@@ -3,6 +3,7 @@
 #include <cmath>
 #include <algorithm>
 
+/// @brief Updates the bitmap to match the percentage provided
 void BarSprite::set_percentage(float val) {
     std::size_t threshold = ((std::size_t) std::round(img_bar_width * val / 100.0f)) * img_bar_height;
     std::size_t i = 0;
@@ -21,6 +22,7 @@ void BarSprite::set_percentage(float val) {
     });
 }
 
+/// @brief Draws the new bar on the screen based on the idx (idx represents which stat the bar is for)
 void BarSprite::render(Adafruit_SSD1306_I2c& renderer, std::size_t idx) {
     constexpr std::size_t x = 20;
     std::size_t y = 7 + idx * 18;

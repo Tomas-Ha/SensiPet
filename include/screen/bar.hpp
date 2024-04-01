@@ -6,6 +6,7 @@
 #include "Adafruit_SSD1306.h"
 #include "sprites/sprites_ui.hpp"
 
+/* Class to iteratively create and display a bar that shows the amount of hunger, loneliness, etc. */ 
 class BarSprite {
     std::array<std::uint8_t, img_bar.size()> buf{img_bar};
 

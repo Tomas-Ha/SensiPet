@@ -9,7 +9,7 @@ BSP_AUDIO_Init_t MicParams;
 size_t AUDIO_RECORDING_LENGTH = 10; // Audio recording length in ms (sensitivity)
 size_t TARGET_AUDIO_BUFFER_NB_SAMPLES = (size_t) AUDIO_SAMPLING_FREQUENCY * ((double) AUDIO_RECORDING_LENGTH / 1000);
 int16_t *TARGET_AUDIO_BUFFER = (int16_t*)calloc(TARGET_AUDIO_BUFFER_NB_SAMPLES, sizeof(int16_t));
-size_t TARGET_AUDIO_BUFFER_IX = 0;
+size_t TARGET_AUDIO_BUFFER_IDX = 0;
 
 float max_amp_change = 25;
 float max_in_decibels = 10000;
@@ -48,7 +48,6 @@ void target_audio_buffer_full() {
 
     // Update Values
     max_in_decibels = new_max_in_decibels;
-    // TODO: track multiple statistics like median, min, max
 }
 
 /**
@@ -61,15 +60,15 @@ void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance) {
     uint32_t buffer_size = PCM_BUFFER_LEN / 2; /* Half Transfer */
     uint32_t nb_samples = buffer_size / sizeof(int16_t); /* Bytes to Length */
 
-    if ((TARGET_AUDIO_BUFFER_IX + nb_samples) > TARGET_AUDIO_BUFFER_NB_SAMPLES) {
+    if ((TARGET_AUDIO_BUFFER_IDX + nb_samples) > TARGET_AUDIO_BUFFER_NB_SAMPLES) {
         return;
     }
 
     /* Copy first half of PCM_Buffer from Microphones onto Fill_Buffer */
-    memcpy(((uint8_t*)TARGET_AUDIO_BUFFER) + (TARGET_AUDIO_BUFFER_IX * 2), PCM_Buffer, buffer_size);
-    TARGET_AUDIO_BUFFER_IX += nb_samples;
+    memcpy(((uint8_t*)TARGET_AUDIO_BUFFER) + (TARGET_AUDIO_BUFFER_IDX * 2), PCM_Buffer, buffer_size);
+    TARGET_AUDIO_BUFFER_IDX += nb_samples;
 
-    if (TARGET_AUDIO_BUFFER_IX >= TARGET_AUDIO_BUFFER_NB_SAMPLES) {
+    if (TARGET_AUDIO_BUFFER_IDX >= TARGET_AUDIO_BUFFER_NB_SAMPLES) {
         // pause audio stream
         int32_t ret = BSP_AUDIO_IN_Stop(AUDIO_INSTANCE);
         if (ret != BSP_ERROR_NONE) {
@@ -86,25 +85,26 @@ void BSP_AUDIO_IN_HalfTransfer_CallBack(uint32_t Instance) {
 * @retval None
 */
 void BSP_AUDIO_IN_TransferComplete_CallBack(uint32_t Instance) {
-
+    // Called when PCM_Buffer is full, processes second half of buffer
     uint32_t buffer_size = PCM_BUFFER_LEN / 2; /* Half Transfer */
     uint32_t nb_samples = buffer_size / sizeof(int16_t); /* Bytes to Length */
 
-    if ((TARGET_AUDIO_BUFFER_IX + nb_samples) > TARGET_AUDIO_BUFFER_NB_SAMPLES) {
+    if ((TARGET_AUDIO_BUFFER_IDX + nb_samples) > TARGET_AUDIO_BUFFER_NB_SAMPLES) {
         return;
     }
 
     /* Copy second half of PCM_Buffer from Microphones onto Fill_Buffer */
-    memcpy(((uint8_t*)TARGET_AUDIO_BUFFER) + (TARGET_AUDIO_BUFFER_IX * 2),
+    memcpy(((uint8_t*)TARGET_AUDIO_BUFFER) + (TARGET_AUDIO_BUFFER_IDX * 2),
         ((uint8_t*)PCM_Buffer) + (nb_samples * 2), buffer_size);
-    TARGET_AUDIO_BUFFER_IX += nb_samples;
+    TARGET_AUDIO_BUFFER_IDX += nb_samples;
 
-    if (TARGET_AUDIO_BUFFER_IX >= TARGET_AUDIO_BUFFER_NB_SAMPLES) {
-        // pause audio stream
+    if (TARGET_AUDIO_BUFFER_IDX >= TARGET_AUDIO_BUFFER_NB_SAMPLES) {
+        // stop audio stream
         int32_t ret = BSP_AUDIO_IN_Stop(AUDIO_INSTANCE);
         if (ret != BSP_ERROR_NONE) {
             printf("Error Audio Stop (%d)\n", ret);
         }
+        // process current audio
         gSensiPet.get_eq()->call(target_audio_buffer_full);
         return;
     }
@@ -123,6 +123,7 @@ void start_recording() {
     int32_t ret;
     uint32_t state;
 
+    // Ensure that we ca start recording again
     ret = BSP_AUDIO_IN_GetState(AUDIO_INSTANCE, &state);
     if (ret != BSP_ERROR_NONE) {
         printf("Cannot start recording: Error getting audio state (%d)\n", ret);
@@ -133,9 +134,10 @@ void start_recording() {
         return;
     }
 
-    // reset audio buffer location
-    TARGET_AUDIO_BUFFER_IX = 0;
+    // Reset audio buffer location
+    TARGET_AUDIO_BUFFER_IDX = 0;
 
+    // Start Recording
     ret = BSP_AUDIO_IN_Record(AUDIO_INSTANCE, (uint8_t *) PCM_Buffer, PCM_BUFFER_LEN);
     if (ret != BSP_ERROR_NONE) {
         printf("Error Audio Record (%d)\n", ret);
@@ -150,15 +152,15 @@ int init_microphone()
         return 0;
     }
 
-    // set up the microphone
+    // Set up the microphone with proper settings
     MicParams.BitsPerSample = 16;
     MicParams.ChannelsNbr = AUDIO_CHANNELS;
     MicParams.Device = AUDIO_IN_DIGITAL_MIC1;
     MicParams.SampleRate = AUDIO_SAMPLING_FREQUENCY;
-    MicParams.Volume = 32;
+    MicParams.Volume = 32; // Preset volume level from driver
 
+    // Init Microphone and check for errors
     int32_t ret = BSP_AUDIO_IN_Init(AUDIO_INSTANCE, &MicParams);
-
     if (ret != BSP_ERROR_NONE) {
         printf("Error Audio Init (%d)\r\n", ret);
         return 1;

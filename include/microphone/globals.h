@@ -11,7 +11,7 @@ extern BSP_AUDIO_Init_t MicParams;
 extern size_t AUDIO_RECORDING_LENGTH;
 extern size_t TARGET_AUDIO_BUFFER_NB_SAMPLES;
 extern int16_t *TARGET_AUDIO_BUFFER;
-extern size_t TARGET_AUDIO_BUFFER_IX;
+extern size_t TARGET_AUDIO_BUFFER_IDX;
 
 extern float max_amp_change;
 extern float avg_amplitude;
