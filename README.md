@@ -1,5 +1,6 @@
 # SensiPet
 CSC385 – Microprocessor Systems Winter 2024 Course Project
+**Demo Video:** [https://www.youtube.com/watch?v=a0KCShVmuzw](https://www.youtube.com/watch?v=a0KCShVmuzw)
 
 ## Description
 A pocket companion that uses the sensors on the STM B-L475E-IOT1A Discovery Board as well as an SSD1306 OLED screen from DIYmalls and BLE to interact with the environment and other pets.
