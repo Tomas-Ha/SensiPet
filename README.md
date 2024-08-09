@@ -1,5 +1,6 @@
 # SensiPet
 CSC385 – Microprocessor Systems Winter 2024 Course Project
+
 **Demo Video:** [https://www.youtube.com/watch?v=a0KCShVmuzw](https://www.youtube.com/watch?v=a0KCShVmuzw)
 
 ## Description
